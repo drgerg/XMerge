@@ -1,9 +1,13 @@
+<<<<<<< HEAD
 ./ColumnNames.xlsx
 ./LastXMerge.ini
 ./README.txt
 ./XMerge_Help.txt
 ./xmerge.ini
 ./xmerge.py
+=======
+.gitignore
+>>>>>>> eb9af5e (initialize)
 Archive/SelWinTest.py
 Archive/xmerge_v0.1.py
 Archive/xmerge_v0.6.py
