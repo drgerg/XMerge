@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ./ColumnNames.xlsx
 ./LastXMerge.ini
 ./README.txt
@@ -8,6 +9,9 @@
 =======
 .gitignore
 >>>>>>> eb9af5e (initialize)
+=======
+__pycache__/xmerge.cpython-39.pyc
+>>>>>>> 935db78 (init)
 Archive/SelWinTest.py
 Archive/xmerge_v0.1.py
 Archive/xmerge_v0.6.py
@@ -1045,7 +1049,6 @@ dist/xmerge/tk/ttk/vistaTheme.tcl
 dist/xmerge/tk/ttk/winTheme.tcl
 dist/xmerge/tk/ttk/xpTheme.tcl
 dist/xmerge/win32com/shell/shell.pyd
-InnoSetupScripts/XMerge.iss
 InnoSetupScripts/Output/XMergeSetup.exe
-__pycache__/xmerge.cpython-39.pyc
 xmerge.spec
+InnoSetupScripts/XMerge.iss
