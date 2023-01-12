@@ -1,4 +1,9 @@
-.gitignore
+./ColumnNames.xlsx
+./LastXMerge.ini
+./README.txt
+./XMerge_Help.txt
+./xmerge.ini
+./xmerge.py
 Archive/SelWinTest.py
 Archive/xmerge_v0.1.py
 Archive/xmerge_v0.6.py
