@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-./ColumnNames.xlsx
-./LastXMerge.ini
-./README.txt
-./XMerge_Help.txt
-./xmerge.ini
-./xmerge.py
-=======
-.gitignore
->>>>>>> eb9af5e (initialize)
-=======
-__pycache__/xmerge.cpython-39.pyc
->>>>>>> 935db78 (init)
 Archive/SelWinTest.py
 Archive/xmerge_v0.1.py
 Archive/xmerge_v0.6.py
@@ -1052,3 +1038,4 @@ dist/xmerge/win32com/shell/shell.pyd
 InnoSetupScripts/Output/XMergeSetup.exe
 xmerge.spec
 InnoSetupScripts/XMerge.iss
+__pycache__/xmerge.cpython-39.pyc
