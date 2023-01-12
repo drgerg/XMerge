@@ -2,6 +2,8 @@
 
 If you are an Excel guru, you don't need this.  But if you aren't, and you have several .csv, tab-delimited, or .xls or .xlsx files that you need to quickly and simply compile into one, XMerge can help.
 
+**Flat data files** means comma-delimited (.csv), tab-delimited (.txt), .xls files, and .xlsx files.  You can argue the last two aren't 'flat files', but XMerge works on them anyway.
+
 Choose your settings, select your source files (must live in same folder), the hit the 'Go' button.
 
 XMerge copies the source files to a temp directory and works on them there.  The originals are not touched.  The temp directory is deleted when XMerge finishes.
