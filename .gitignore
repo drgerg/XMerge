@@ -1040,3 +1040,8 @@ InnoSetupScripts/Output/XMergeSetup.exe
 xmerge.spec
 InnoSetupScripts/XMerge.iss
 __pycache__/xmerge.cpython-39.pyc
+LastXMerge.ini
+README.txt
+XMerge_Help.txt
+xmerge.ini
+xmerge.py
