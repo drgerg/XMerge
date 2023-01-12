@@ -17,4 +17,6 @@ The output file will have a header row that was created one of two ways:
 
 It's a pretty easy tool to use.
 
+XMerge was written in Python.  The interface is Tkinter, which is an adequate GUI platform but won't win any beauty contests.  This was complied into a Windows executable using Pyinstaller, and then Inno Setup Compiler 6.2.0 cooked it down into a single .exe installer.
+
 As with all software, you are responsible to make sure it works properly on your files before using it in any production environment.  XMerge has been tested extensively, but that doesn't mean every possible scenario has been tried.  You might be trying to use it in a way no one else thought of, so test first.
