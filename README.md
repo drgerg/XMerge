@@ -10,6 +10,11 @@ XMerge copies the source files to a temp directory and works on them there.  The
 
 XMerge puts the output file you specified into the folder you specified.
 
+The output file will have a header row that was created one of two ways:
+
+ - from the source files: copying all the column headings,
+ - from a configuration sheet you defined.
+
 It's a pretty easy tool to use.
 
 As with all software, you are responsible to make sure it works properly on your files before using it in any production environment.  XMerge has been tested extensively, but that doesn't mean every possible scenario has been tried.  You might be trying to use it in a way no one else thought of, so test first.
