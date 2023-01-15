@@ -20,6 +20,7 @@ import unicodedata
 import csv
 import pathlib
 import shutil
+from tkhtmlview import HTMLScrolledText, RenderHTML, HTMLLabel
 
 ## NOTES: XMerge.py uses (2) .ini files via the configparser module.
 #       "xmerge.ini" is the system-wide config file.  It is kept in the 
@@ -35,7 +36,7 @@ import shutil
 #       in each output folder, and contains the paths and filenames
 #       used to create that output (export) file.
 ##
-version = "v1.3.4"
+version = "v1.3.5"
 confparse = ConfigParser()
 sysconfparse = ConfigParser()
 path_to_dat = path.abspath(path.dirname(__file__))
@@ -406,7 +407,7 @@ def exCOPYcontinue(exportFolder,datchkFiles):
             text4.insert(tk.INSERT, "You need to check the contents of LastXMerge.ini"
             " in your Output Folder.  One or more of your source files' name has changed, or it is gone."
             "\n\nYou will need to exit XMerge. Then open LastXMerge.ini with Notepad and edit it."
-            "\n\nYou can also use the 'Get New Data' button, of course.")
+            "\n\nOR you can use the 'Get New Data' button to reselect sources.")
             window.update()
             window.mainloop()
         else:
@@ -874,39 +875,29 @@ def aboutWindow():
     aw.rowconfigure(0, weight=1)
     aboutText = tk.Text(aw, height=20, width=170, bd=3, padx=10, pady=10, wrap=tk.WORD, font=nnFont)
     aboutText.grid(column=0, row=1)
-    aboutText.insert(tk.INSERT, "This tool converts and merges multiple source files into one .xlsx file." 
-"\n\nCheck out Help for more details.\n\nXMerge and ColumnNames.xlsx are located at \n\n" + path_to_dat + "\n"
-"\nStart with the 'Get New Data' button to the left.\n\n- Greg Sanders\n\nXMerge is written in Python and compiled using PyInstaller.\n\n"
-"www.drgerg.com")
+    aboutText.insert(tk.INSERT, "This tool converts and merges multiple flat source files (.csv, .txt, .xls, .xlsx) into one .xlsx file." 
+"\n\nCheck out Help for more details.\n\nYour XMerge installation and supporting files are located at:\n\n" + path_to_dat + "\n"
+"\nStart with the 'Get New Data' button to the left.\n\n- Greg Sanders, aka Dr.Gerg, aka Casspop\n"
+"\nXMerge is written in Python and compiled using PyInstaller.\nInno Setup Compiler builds the Windows installer.\n\n"
+"https://www.drgerg.com\nhttps://github.com/casspop/XMerge")
 #
 ## DEFINE THE HELP WINDOW
 #
 def helpWindow():
     hw = tk.Toplevel(window)
     hw.title("XMerge Help")
-    hwinWd = 600  # Set window size and placement
-    hwinHt = 600
+    hwinWd = 800  # Set window size and placement
+    hwinHt = 800
     x_Left = int(window.winfo_screenwidth() / 2 - hwinWd / 2)
     y_Top = int(window.winfo_screenheight() / 2 - hwinHt / 2)
     hw.config(background="white")  # Set window background color
     hw.geometry(str(hwinWd) + "x" + str(hwinHt) + "+{}+{}".format(x_Left, y_Top))
     hw.iconbitmap('./ico/XMergeicon.ico')
-    hwlabel = tk.Label(hw, height=8, font=18, text ="XMerge Help")
+    hwlabel = HTMLLabel(hw, height=3, html='<h2 style="text-align: center">XMerge Help</h2>')
     hw.columnconfigure(0, weight=1)
-    hw.rowconfigure(0, weight=1)
-    hw.rowconfigure(1, weight=1)
-
-    helpText = tk.Text(hw, height=40, width=80, bd=3, padx=6, pady=6, wrap=tk.WORD, font=nnFont)
-    helpsb = ttk.Scrollbar(hw, orient='vertical', command=helpText.yview)
-
-    helpText['yscrollcommand'] = helpsb.set
-    hwlabel.grid(column=0, columnspan=3, row=0, padx=10, pady=10)  # Place label in grid
-    helpText.grid(column=0, row=1)
-    helpsb.grid(column=1, row=1, sticky='ns')
-
-    with open("XMerge_Help.txt", "r") as f:
-        hlptxt = f.read()
-    helpText.insert(tk.INSERT, hlptxt)
+    helpText = HTMLScrolledText(hw, height=44, padx=10, pady=10, html=RenderHTML("XMerge_Help.html"))
+    hwlabel.grid(column=0, row=0, sticky="NSEW")  # Place label in grid
+    helpText.grid(column=0, row=1, ipadx=10, ipady=10, sticky="NSEW")
 #
 def manageColNames():
     outFolderChk = sysconfparse.get('folders', 'output_folder')
