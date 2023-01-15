@@ -4,8 +4,7 @@ build/
 dist/
 InnoSetupScripts/
 xmerge.spec
-InnoSetupScripts/XMerge.iss
-__pycache__/xmerge.cpython-39.pyc
+__pycache__/
 LastXMerge.ini
 README.txt
 XMerge_Help.md
