@@ -46,7 +46,7 @@ You can specify new output folders anytime you wish, and you can change the outp
 
 **XMerge stores your current configuration in two .ini files.**
 
-- **xmerge.ini** lives in the installation folder.  This is **system configuration file**. The values contained in this system .ini are used for repeatedly working in the same output folder. The last folder you worked in will be where you start when you return to XMerge after exiting.
+- **xmerge.ini** lives in the installation folder.  This is the **system configuration file**. The values contained in this system .ini are used for repeatedly working in the same output folder. The last folder you worked in will be where you start when you return to XMerge after exiting.
 
 - **LastXMerge.ini** lives in each output folder you specify.  This file contains a record of the source file paths and filenames.  This allows you to pick up where you left off last time you worked in any specific output folder.  Each time you select that output folder, the LastXMerge.ini file is read.  All you have to do is click 'Go' to replicate whatever happened last using that output folder.
 
