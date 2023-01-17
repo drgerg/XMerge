@@ -886,7 +886,7 @@ def aboutWindow():
 #
 def helpWindow():
     hw = tk.Toplevel(window)
-    hw.tk.call('tk', 'scaling', 1.0)  ## This prevents the text being huge on hiDPI displays.
+    hw.tk.call('tk', 'scaling', 1.0)    ## This prevents the text being huge on hiDPI displays.
     hw.title("XMerge Help")
     hwinWd = 600  # Set window size and placement
     hwinHt = 600

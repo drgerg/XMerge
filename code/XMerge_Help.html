@@ -23,8 +23,8 @@
 <h4>DUAL CONFIGURATION FILES (xmerge.ini and LastXMerge.ini)</h4>
 <p><strong>XMerge stores your current configuration in two .ini files.</strong></p>
 <ul>
-<li><strong>xmerge.ini</strong> lives in the installation folder.  This is the <strong>system configuration file</strong>. The values contained in this system .ini are used for repeatedly working in the same output folder. The last folder you worked in will be where you start when you return to XMerge after exiting.</li>
-<li><strong>LastXMerge.ini</strong> lives in each output folder you specify.  This file contains a record of the source file paths and filenames.  This allows you to pick up where you left off last time you worked in any specific output folder.  Each time you select that output folder, the LastXMerge.ini file is read.  All you have to do is click 'Go' to replicate whatever happened last using that output folder.</li>
+<li>The file <strong>xmerge.ini</strong> lives in the installation folder.  This is the <strong>system configuration file</strong>. The values contained in this system .ini are used for repeatedly working in the same output folder. The last folder you worked in will be where you start when you return to XMerge after exiting.</li>
+<li>The file <strong>LastXMerge.ini</strong> lives in each output folder you specify.  This file contains a record of the source file paths and filenames.  This allows you to pick up where you left off last time you worked in any specific output folder.  Each time you select that output folder, the LastXMerge.ini file is read.  All you have to do is click 'Go' to replicate whatever happened last using that output folder.</li>
 </ul>
 <h4>What happens next</h4>
 <p>XMerge creates a "temp" folder in the Output folder, and it is this folder into which the source files are copied.  Then XMerge converts them to .xlsx and copies the contents of each file concurrently into the new output file.  Once the conversion and copying is finished, XMerge removes the "temp" folder and the files that were copied into it.</p>
@@ -36,13 +36,18 @@
 <p><strong>'GET NEW DATA' BUTTON</strong>:  Use this when you are first starting XMerge, or anytime you want to change data sets.  You will be prompted to clear the outputs folder if there are files in it.  If you opt to NOT clear the outputs folder, the end result will not be what you want.</p>
 <p><strong>'GO' BUTTON</strong>: Use this to copy, convert, and compile the same files you worked with last time.  This is helpful when you have made edits and re-generated the source data files.</p>
 <h4>FUZZY FONTS ON HI-DPI DISPLAYS</h4>
-<p>The GUI for XMerge is always scaled on high-DPI displays.  This behavior is determined by Windows and Tkinter, so on nearly all modern displays, some scaling occurs.  The resulting fuzzy fonts bother some people (I don't really notice.)  There is one way to improve things somewhat. Your mileage may vary.</p>
+<p>High-DPI displays introduce the potential for fuzzy fonts due to scaling.  This behavior is determined by your Display Settings in Windows.</p>
+<p>If you see anything other than 100% here:</p>
+<p><img alt="Display Settings" src=".\img\hi-dpi-3.png" /></p>
+<p>then you are scaling the desktop on that display.  This may cause what looks like slightly out-of-focus fonts in XMerge.</p>
+<p>These fuzzy fonts bother some people (I don't really notice.)  </p>
+<p>There is one way to improve things somewhat.  Your mileage may vary.</p>
 <ul>
 <li>Look at the File|About dialog in XMerge to find your installation folder</li>
 <li>Navigate to that folder and find XMerge.exe</li>
 <li>Select and right-click on XMerge.exe.  Select <strong>Properties</strong>.</li>
 <li>Look for the <strong>Compatibility</strong> tab and play with these settings.</li>
 </ul>
-<a href=".\img\hi-dpi-1.png"><img alt="The Properties dialog." src=".\img\hi-dpi-1-s.png" /></a></br>
-<a href=".\img\hi-dpi-2.png"><img alt="Scaling override settings." src=".\img\hi-dpi-2-s.png" /></a></br>
+<p><img alt="The Properties dialog." src=".\img\hi-dpi-1.png" />
+<img alt="Scaling override settings." src=".\img\hi-dpi-2.png" /></p>
 <p><strong>XMerge</strong> is written in <span style="color:red;">Python</span> and complied using <span style="color:red;">Pyinstaller</span>.  The installer is built for Windows using the <span style="color:red;">Inno Setup Compiler</span>.</p>

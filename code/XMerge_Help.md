@@ -46,9 +46,8 @@ You can specify new output folders anytime you wish, and you can change the outp
 
 **XMerge stores your current configuration in two .ini files.**
 
-- **xmerge.ini** lives in the installation folder.  This is the **system configuration file**. The values contained in this system .ini are used for repeatedly working in the same output folder. The last folder you worked in will be where you start when you return to XMerge after exiting.
-
-- **LastXMerge.ini** lives in each output folder you specify.  This file contains a record of the source file paths and filenames.  This allows you to pick up where you left off last time you worked in any specific output folder.  Each time you select that output folder, the LastXMerge.ini file is read.  All you have to do is click 'Go' to replicate whatever happened last using that output folder.
+- The file **xmerge.ini** lives in the installation folder.  This is the **system configuration file**. The values contained in this system .ini are used for repeatedly working in the same output folder. The last folder you worked in will be where you start when you return to XMerge after exiting.
+- The file **LastXMerge.ini** lives in each output folder you specify.  This file contains a record of the source file paths and filenames.  This allows you to pick up where you left off last time you worked in any specific output folder.  Each time you select that output folder, the LastXMerge.ini file is read.  All you have to do is click 'Go' to replicate whatever happened last using that output folder.
 
 #### What happens next
 
@@ -71,14 +70,24 @@ The original source files are never touched.
 
 #### FUZZY FONTS ON HI-DPI DISPLAYS
 
-The GUI for XMerge is always scaled on high-DPI displays.  This behavior is determined by Windows and Tkinter, so on nearly all modern displays, some scaling occurs.  The resulting fuzzy fonts bother some people (I don't really notice.)  There is one way to improve things somewhat.  Your mileage may vary.
+High-DPI displays introduce the potential for fuzzy fonts due to scaling.  This behavior is determined by your Display Settings in Windows.
+
+If you see anything other than 100% here:
+
+![Display Settings](.\\img\\hi-dpi-3.png)
+
+then you are scaling the desktop on that display.  This may cause what looks like slightly out-of-focus fonts in XMerge.
+
+These fuzzy fonts bother some people (I don't really notice.)  
+
+There is one way to improve things somewhat.  Your mileage may vary.
 
 - Look at the File|About dialog in XMerge to find your installation folder
 - Navigate to that folder and find XMerge.exe
 - Select and right-click on XMerge.exe.  Select **Properties**.
 - Look for the **Compatibility** tab and play with these settings.
 
-[![The Properties dialog.](.\\img\\hi-dpi-1-s.png)](.\\img\\hi-dpi-1.png)
-[![Scaling override settings.](.\\img\\hi-dpi-2-s.png)](.\\img\\hi-dpi-2.png)
+![The Properties dialog.](.\\img\\hi-dpi-1.png)
+![Scaling override settings.](.\\img\\hi-dpi-2.png)
 
 **XMerge** is written in <span style="color:red;">Python</span> and complied using <span style="color:red;">Pyinstaller</span>.  The installer is built for Windows using the <span style="color:red;">Inno Setup Compiler</span>.
