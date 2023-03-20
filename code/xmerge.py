@@ -30,7 +30,7 @@ version = "v1.3.6"
 #       The xmerge.ini file tells XMerge.py where to start, specifically, 
 #       what was the last output folder XMerge.py worked in.
 #
-#       We differentiate between the two .ini files by naming separate
+#       We differentiate between the two .ini files by making separate
 #       instances of ConfigParser(): 'confparse' for LastXMerge.ini
 #       and 'sysconfparse' for the system-wide xmerge.ini.
 #
