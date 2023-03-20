@@ -4,7 +4,7 @@ XMerge helps you merge the contents of multiple .txt, .csv, .xls, or .xlsx files
 
 You specify or create the Output folder.  This is where your output file will be when XMerge finishes.  All of XMerge's activities happen in this folder.
 
-XMerge makes copies of source files and creates your output.xlsx file.
+XMerge makes copies of source files and creates your output.xlsx file.  Because it works from copies, any mistakes you make in selecting options will do no permanent damage.  When things don't go like you wanted, change settings and try again.
 
 **XMerge does not manipulate the original source files in any way.**
 
@@ -91,3 +91,5 @@ There is one way to improve things somewhat.  Your mileage may vary.
 ![Scaling override settings.](.\\img\\hi-dpi-2.png)
 
 **XMerge** is written in <span style="color:red;">Python</span> and complied using <span style="color:red;">Pyinstaller</span>.  The installer is built for Windows using the <span style="color:red;">Inno Setup Compiler</span>.
+
+**Many thanks** to <span style="color:green;">bauripalash (Palash Bauri)</span> for [tkhtmlview](https://github.com/bauripalash/tkhtmlview), which makes this help file window look so good!

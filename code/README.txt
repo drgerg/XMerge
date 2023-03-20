@@ -1,12 +1,8 @@
-This is XMerge v1.3.6
+This is XMerge v1.4.0
 
-v1.3.6 Found a good way to prevent the new HTML help text from being scaled up
-to huge on high-DPI displays.  The ".call('tk', 'scaling', 1.0)" function
-resets scaling to '1.0' for only the help window which works great.
-
-v1.3.5 is the first use of the 'tkhtmlview' module which allows us to move
-away from plain text in the Help box and display formatted text, which is
-easier to read.  The help file is written in markdown, then translated to
-html with the Python 'markdown' package.  The resulting html file is then 
-packaged up when the compiler runs.  This also allows us to include images
-in the Help file, which is nice.
+Changes made in v1.4.0:
+1. Finally added the ability to select sources scattered all over the place.
+2. Insure the .ini file is read when a new output folder is selected.
+3. Upgraded tkhtmlview to v0.1.3 and updated some help text.
+4. Tidied up a bit in general.
+5. Got rid of the annoying 'Purge output folder?' prompt.
