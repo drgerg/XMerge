@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # 
-# XMerge.py - 2022 by Gregory A. Sanders (dr.gerg@drgerg.com)
+# XMerge.py - 2022,23 by Gregory A. Sanders (dr.gerg@drgerg.com)
 # Merge multiple source files using a common header into one output file.
-##
+#
 
 import tkinter as tk
 import openpyxl as xl
@@ -22,22 +22,30 @@ import pathlib
 import shutil
 from tkhtmlview import HTMLScrolledText, RenderHTML, HTMLLabel
 
-version = "v1.3.6"
-
-## NOTES: XMerge.py uses (2) .ini files via the configparser module.
+version = "v1.4.0"
+#
+# Changes made in v1.4.0:
+#       1. The ability to select sources scattered all over the place.
+#       2. Insure the .ini file is read when a new output folder is selected.
+#       3. Upgraded tkhtmlview to v0.1.3 and updated some help text.
+#       4. Tidied up a bit in general.
+#       5. Got rid of the annoying 'Purge output folder?' prompt.
+#
+# NOTES: XMerge.py uses (2) .ini files via the configparser module.
+#
 #       "xmerge.ini" is the system-wide config file.  It is kept in the 
 #       installation folder.
 #       The xmerge.ini file tells XMerge.py where to start, specifically, 
 #       what was the last output folder XMerge.py worked in.
 #
+#       "LastXMerge.ini" is a per-output-folder config file.  It is located
+#       in each output folder, and contains the paths and filenames
+#       used to create that output (export) file.
+#
 #       We differentiate between the two .ini files by making separate
 #       instances of ConfigParser(): 'confparse' for LastXMerge.ini
 #       and 'sysconfparse' for the system-wide xmerge.ini.
 #
-#       "LastXMerge.ini" is a per-output-folder config file.  It is located
-#       in each output folder, and contains the paths and filenames
-#       used to create that output (export) file.
-##
 confparse = ConfigParser()
 sysconfparse = ConfigParser()
 path_to_dat = path.abspath(path.dirname(__file__))
@@ -45,68 +53,70 @@ XMergeIni = path_to_dat + "\\xmerge.ini"
 sysconfparse.read(XMergeIni)
 outFolderChk = sysconfparse.get('folders', 'output_folder')
 #
-## SET WORKING ROOT AND EXPORTS FOLDER LOCATIONS
+# SET WORKING ROOT AND EXPORTS FOLDER LOCATIONS
 #
 def setup():
     path_to_dat = path.abspath(path.dirname(__file__))
     XMergeIni = path_to_dat + "\\xmerge.ini"
-    workDir = os.path.expanduser("~")
+    userHome = os.path.expanduser("~")
     datapath = ""
-    ## Check the xmerge.ini file for previously visited folders.
+    # Check the xmerge.ini file for previously visited folders.
     # Get previous Data folder.
-    # Then go to the output folder and get LastXMerge.ini to process.
-    #
+    # Then go to that output folder (if it exists) and get LastXMerge.ini to process.
     sysconfparse.read(XMergeIni)
-    #
-    ## IF xmerge.ini has inaccurate data, edit it.
-    ## 'sysconfparse' is for xmerge.ini.
-    #
+    # IF xmerge.ini has inaccurate data, edit it.
+    # 'sysconfparse' is for xmerge.ini.
     outFolderChk = sysconfparse.get('folders', 'output_folder')
     ofExist = os.path.isdir(outFolderChk)
-    if ofExist == False:            ## Configured output folder isn't there.
-        outFilesChkBox.select()     ## Check the 'Change Output Folder' box.
+    didEdit = 0
+    if ofExist == False:            # Configured output folder isn't there.
+        outFilesChkBox.select()     # Check the 'Change Output Folder' checkbox.
         outxm = 1
         sysconfparse.set('folders', 'output_folder', "")
-        with open(XMergeIni, 'w') as nnIni:
-            sysconfparse.write(nnIni)
+        didEdit = 1
     instchk = sysconfparse.get('folders', 'installation')
     homepath = sysconfparse.get('folders', 'homepath')
     verchk = sysconfparse.get('program','version')
     if instchk != path_to_dat:
         sysconfparse.set('folders', 'installation', path_to_dat)
-        with open(XMergeIni, 'w') as nnIni:
-            sysconfparse.write(nnIni)
-    if homepath != workDir:
-        sysconfparse.set('folders', 'homepath', workDir)
-        with open(XMergeIni, 'w') as nnIni:
-            sysconfparse.write(nnIni)
+        didEdit = 1
+    if homepath != userHome:
+        sysconfparse.set('folders', 'homepath', userHome)
+        didEdit = 1
     if verchk != version:
         sysconfparse.set('program','version',version)
-        with open(XMergeIni, 'w') as nnIni:
-            sysconfparse.write(nnIni)
+        didEdit = 1
     if outFolderChk == "":
         outFilesChkBox.select()
-        newOutFolder()
+        outFolderChk = newOutFolder()
     else:
         outFilesChkBox.deselect()
-    
+    if didEdit == 1:
+        with open(XMergeIni, 'w') as nnIni:
+            sysconfparse.write(nnIni)
+            didEdit = 0
     #
-    ## SHIFT TO LastXMerge.ini to get the rest of this.
-    ## If it doesn't exist, make one.
-    ## 'confparse' is for LastXMerge.ini.
+    # SHIFT TO LastXMerge.ini to get the rest of this.
+    # If it doesn't exist, make one.
+    # 'confparse' is for LastXMerge.ini.
     #
     outFolderChk = sysconfparse.get('folders', 'output_folder') # may have changed.
-    iniFilesList = []                               ## Empty list for filenames.
+    iniFilesList = []                               # Empty list for filenames.
     LastMergeIni = outFolderChk + "\\LastXMerge.ini"
-    chkINI = os.path.isfile(LastMergeIni)           ## Look for the .ini file.
+    chkINI = os.path.isfile(LastMergeIni)           # Look for the .ini file.
     if chkINI == True:
         confparse.read(LastMergeIni)
         CurrXportFilename = getCtrlVals()[3]
+         ## Update the LastXMerge.ini file if it has archaic options.
+        if confparse.has_option('userselections','columnselection') == False:
+            confparse.set('userselections','columnselection','')
+            if confparse.has_option('userselections','status') == True:
+                confparse.remove_option('userselections','status')
         xportFnVar = confparse.get('export','exportfilename')
         if xportFnVar[-4:] != "xlsx":
             xportFnVar = xportFnVar + ".xlsx"
         datapath = confparse.get('folders', 'data_folder')
-        colNameChoice = confparse.get("userselections","status")
+        colNameChoice = confparse.get("userselections","columnselection")
         hdrRowChoice = confparse.get("userselections","headerrow")
         hdrrwFn.set(hdrRowChoice)
         appendfilename = confparse.get("userselections","appendfilename")
@@ -115,6 +125,7 @@ def setup():
             colNameVar.set(colNameChoice)
         if xportFnVar != xportFn:
             xportFn.set(xportFnVar)
+        # If the export filename is a new one, save it to the .ini file.
         if CurrXportFilename != xportFnVar and CurrXportFilename != "XMerge_Export.xlsx":
             confparse.set('export','exportfilename',CurrXportFilename)
             xportFn.set(CurrXportFilename)
@@ -131,13 +142,13 @@ def setup():
     text3.insert(tk.INSERT, "Initialization complete. LastXMerge.ini" + lastIniFound + "found in Output Folder.")
     updateWinText()
     #
-    ##
+    #
 
 
 def updateWinText():
-    ## Everything we need to know has been gathered from the two .ini files.
-    ## Now we're ready to do something when the user hits a button.
-    ## Update the folder and path info in the GUI.
+    # Everything we need to know has been gathered from the two .ini files.
+    # Now we're ready to do something when the user hits a button.
+    # Update the folder and path info in the GUI.
     #
     outFolderChk = sysconfparse.get('folders', 'output_folder')
     datapath = confparse.get('folders', 'data_folder')
@@ -152,22 +163,26 @@ def updateWinText():
         text1.insert(tk.INSERT, "\nCurrently selected files: " + os.path.basename(str(iniFilesList).strip("[]")))
     window.update()
 #
-##  THE GO BUTTON BRINGS US HERE FIRST - THE BEGINNING - 
+#  THE GO BUTTON BRINGS US HERE FIRST - THE BEGINNING - 
 #
 def main():
     ofcchk = getCtrlVals()[2]
     colNameChoice = getCtrlVals()[0]
-    if ofcchk == 1:                 ## Look for 'Clear Output Folder' checkmark.
+    if ofcchk == 1:                 # Look for 'Clear Output Folder' checkmark.
         purgeExp()
-    outxm = getCtrlVals()[1]        ## Look for 'Change Output Folder' selection.
+    outxm = getCtrlVals()[1]        # Look for 'Change Output Folder' selection.
     if outxm == 1:
-        newOutFolder()
+        outFolderChk = newOutFolder()
     xportFnVar = getCtrlVals()[3]
     if xportFnVar[-4:] != "xlsx":
         xportFnVar = xportFnVar + ".xlsx"
+    # Go get the source files now.
     firstFile,exportFolder,datchkFiles = browseFiles()  # Calls browseFiles(), then if Continue is Yes, txtFileCnvrt().
+    # Copy the raw source files to the temp folder.
     exCOPYcontinue(exportFolder,datchkFiles)
+    # Based on the source file types, make lists for conversions.
     xlsext, xlsxext, txtext, csvext, allEntr = initialize(exportFolder)
+    # Go do the needed conversions from whatever to .xlsx.
     convertedList = []
     if xlsext != []:
         convertedList = xlsFileCnvrt(exportFolder,xlsext,convertedList)
@@ -175,82 +190,89 @@ def main():
         convertedList = txtFileCnvrt(exportFolder,txtext,convertedList)
     if csvext != []:
         convertedList = csvFileCnvrt(exportFolder,csvext,convertedList)
-    if xlsxext != []:
-        convertedList = []
+    # .xlsx files get special handling because they don't require conversion.
+    if xlsxext != []:           # There will always be .xlsx files, so we need to make a list, BUT
+        convertedList = []      # we don't want to get the output file in the list.
         xpFnIni = confparse.get('export', 'exportfilename')
         for f in xlsxext:
             if f != xpFnIni:
                 convertedList.append(exportFolder + "/temp/" + f)
     text3.delete('1.0',tk.END)
     text3.insert(tk.END, "Finished converting files in the Output Folder.")
-    fileNam = convertedList[0]
-    if colNameChoice == 'all':
+    fileNam = convertedList[0] # The first .xlsx file will provide the header row
+    if colNameChoice == 'all': # if 'All Columns' is selected.
         itemList = makeColsList(fileNam)
     elif colNameChoice == 'conf':
         itemList = colConfig()
     appendfilename = getCtrlVals()[5]
+    outFolderChk = sysconfparse.get('folders', 'output_folder')
     confparse.set('userselections','appendfilename',str(appendfilename))
     LastMergeIni = outFolderChk + "\\LastXMerge.ini"
     with open(LastMergeIni, 'w') as LMIni:
         confparse.write(LMIni)
     if appendfilename == 1:
-        itemList.append('SRCFILE')          ## Append 'SRCFILE' to itemList so we can include a filename column.
+        itemList.append('SRCFILE')          # Append 'SRCFILE' to itemList so we can include a filename column.
     DESTfilename = makeOutput(itemList,exportFolder)
-    ## At this juncture, convertedList contains the .xlsx filenames of source files.
-    ## itemList contains the column names (defines the final output).
-    ## exportFolder is where we're putting all this output, and is where our source file copies live right now.
-    ## DESTfilename is the path/filename of our final output .xlsx file.
+    # At this juncture, convertedList contains the .xlsx filenames of source files.
+    # itemList contains the column names (defines the final output).
+    # exportFolder is where we're putting all this output, and is where our source file copies live right now.
+    # DESTfilename is the path/filename of our final output .xlsx file.
     copyAll(convertedList,itemList,exportFolder,DESTfilename)
 
-## DESTINATION FILE Existence Check or Create.
-## NOTE: the reason we create this file is because we don't want any calculations in our final output,
-## therefore, we are copying only values into a new file. No macro fears, no accidental corruption of any
-## existing file.  Safer and cleaner this way, even though it takes extra time.
+# DESTINATION FILE Existence Check or Create.
+# NOTE: the reason we create this file is because we don't want any calculations in our final output,
+# therefore, we are copying only values into a new file. No macro fears, no accidental corruption of any
+# existing file.  Safer and cleaner this way, even though it takes extra time.
 #
 def makeOutput(itemList,exportFolder):
-    xportFnVar = getCtrlVals()[3]
-    if xportFnVar[-4:] != "xlsx":
-        xportFnVar = xportFnVar + ".xlsx"
-    outFolderChk = sysconfparse.get('folders', 'output_folder')
-    LastMergeIni = outFolderChk + "\\LastXMerge.ini"
-    confparse.read(LastMergeIni)
-    xpFnIni = confparse.get('export', 'exportfilename')
-    if xpFnIni != xportFnVar:
-        confparse.set('export', 'exportfilename', xportFnVar)
-        with open(LastMergeIni, 'w') as nnIni:
-            confparse.write(nnIni)
-    DESTfilename = exportFolder + "/" + xportFnVar
-    wb3 = xl.Workbook()
-    wb3Sheet = wb3['Sheet']
-    wb3Sheet.title = 'XMerge'
-    ws3 = wb3.worksheets[0]
-    text3.insert(tk.INSERT, '\n - Created ' + xportFnVar + '.')
-    window.update()
-    wb3.save(filename = DESTfilename)
-    wb3 = xl.load_workbook(DESTfilename, data_only=True) 
-    ws3 = wb3.worksheets[0]
-    incVar = 1
-    for label in itemList:
-        ws3.cell(row = 1, column = incVar).value = label
-        incVar = incVar + 1
-    wb3.save(DESTfilename)
-    text4.insert(tk.INSERT, "\nCreated .xlsx file and header row.\n")
-    window.update()
+    try:
+        xportFnVar = getCtrlVals()[3]
+        if xportFnVar[-4:] != "xlsx":
+            xportFnVar = xportFnVar + ".xlsx"
+        outFolderChk = sysconfparse.get('folders', 'output_folder')
+        LastMergeIni = outFolderChk + "\\LastXMerge.ini"
+        confparse.read(LastMergeIni)
+        xpFnIni = confparse.get('export', 'exportfilename')
+        if xpFnIni != xportFnVar:
+            confparse.set('export', 'exportfilename', xportFnVar)
+            with open(LastMergeIni, 'w') as nnIni:
+                confparse.write(nnIni)
+        DESTfilename = exportFolder + "/" + xportFnVar
+        wb3 = xl.Workbook()
+        wb3Sheet = wb3['Sheet']
+        wb3Sheet.title = 'XMerge'
+        ws3 = wb3.worksheets[0]
+        text3.insert(tk.INSERT, '\n - Created ' + xportFnVar + '.')
+        window.update()
+        wb3.save(filename = DESTfilename)
+        wb3 = xl.load_workbook(DESTfilename, data_only=True) 
+        ws3 = wb3.worksheets[0]
+        incVar = 1
+        for label in itemList:
+            ws3.cell(row = 1, column = incVar).value = label
+            incVar = incVar + 1
+        wb3.save(DESTfilename)
+        text4.insert(tk.INSERT, "\nCreated .xlsx file and header row.\n")
+        window.update()
+    except PermissionError:
+        msg = "Close the output spreadsheet."
+        endWithError(msg)
+
     return(DESTfilename)
 #
-## GET SOURCE FILE NAMES
+# GET SOURCE FILE NAMES
 #
 def newOutFolder():
     files = []
-    outxm = getCtrlVals()[1]        ## Look for 'Change Output Folder' selection.
-    sysconfparse.read(XMergeIni)       ## Looking in xmerge.ini
+    outxm = getCtrlVals()[1]        # Look for 'Change Output Folder' selection.
+    sysconfparse.read(XMergeIni)       # Looking in xmerge.ini
     outFolderChk = sysconfparse.get('folders', 'output_folder')
     ofExist = os.path.isdir(outFolderChk)
-    if ofExist == False:            ## Configured output folder isn't there.
-        outFilesChkBox.select()     ## Check the 'Change Output Folder' box.
+    if ofExist == False or outFolderChk == "": # Configured output folder isn't there or xmerge.ini doesn't have one.
+        outFilesChkBox.select()     # Check the 'Change Output Folder' box.
         outxm = 1
-    workDir = os.path.expanduser("~")
-    if outxm == 1:                                  ## Output folder selection called for. Open File dialog.
+    userHome = os.path.expanduser("~")
+    if outxm == 1:                                  # Output folder selection called for. Open File dialog.
         text3.delete("1.0", tk.END)
         text3.insert("1.0", "Choose the folder where XMerge should put output file.\nYou might want to create a new sub-folder for these.")
         if outFolderChk != "":
@@ -264,19 +286,20 @@ def newOutFolder():
             text3.insert("1.0", "Select or Create a folder for your output files.")
             window.update()
             exportFolder = os.path.normpath(filedialog.askdirectory(
-                initialdir=(workDir), title="Select or Create a folder for your output files."))
+                initialdir=(userHome), title="Select or Create a folder for your output files."))
         if exportFolder == "":
             keepGoing = messagebox.askyesno("No folder selected.", "Start over? Y/N")
             if keepGoing == True:
                 main()
             else:
                 sys.exit()
-        sysconfparse.set('folders','output_folder', os.path.normpath(exportFolder))
+        outFolderChk = os.path.normpath(exportFolder)
+        sysconfparse.set('folders','output_folder', outFolderChk)
         with open(XMergeIni, 'w') as csvIni:
             sysconfparse.write(csvIni)
         outxm = 0
         outFilesChkBox.deselect()
-        chkIniexist = os.path.isfile(exportFolder + "\\LastXMerge.ini")     ##  look for LastXMerge.ini.
+        chkIniexist = os.path.isfile(exportFolder + "\\LastXMerge.ini")     #  look for LastXMerge.ini.
         if chkIniexist == True:
             thisMerge = os.path.normpath(exportFolder + "\\LastXMerge.ini")
             runThis = messagebox.askyesno("LastXMerge.ini found.", "Use it as it is?")
@@ -291,12 +314,13 @@ def newOutFolder():
                     "\n\nDouble-check your settings.\n\nThen press 'Get New Data' or 'Go'.")
                 window.mainloop()
             else:
-                confparse.read(thisMerge)     ## Read from LastXMerge.ini in the new folder.
+                confparse.read(thisMerge)     # Read from LastXMerge.ini in the new folder.
                 xportFnVar = confparse.get('export', 'exportfilename')
                 if xportFnVar[-4:] != "xlsx":
                     xportFnVar = xportFnVar + ".xlsx"
-                colNameVar.set(confparse.get("userselections","status"))
-                xportFn.set(xportFnVar)     ## puts updated Export Filename in textbox.
+                colNameVar.set(confparse.get("userselections","columnselection"))
+                xportFn.set(xportFnVar)     # puts updated Export Filename in textbox.
+    return outFolderChk
     
     #
     # CREATE A NEW LastXMerge.ini FILE IN THE OUTPUT FOLDER.
@@ -306,14 +330,14 @@ def newLastXMerge():
     if outFolderChk != "":
         LastMergeIni = outFolderChk + "\\LastXMerge.ini"
         confparse["files"]={}
-        confparse["userselections"]={"status":"all","headerrow":"auto","appendfilename":"0"}
+        confparse["userselections"]={"columnselection":"all","headerrow":"auto","appendfilename":"0"}
         confparse["folders"]={"data_folder":""}
         xpfn = getCtrlVals()[3]
         confparse["export"]={"exportfilename":xpfn}
         with open(LastMergeIni, 'w') as LMIni:
             confparse.write(LMIni)
     else:
-        outFilesChkBox.select()     ## Check the 'Change Output Folder' box.
+        outFilesChkBox.select()     # Check the 'Change Output Folder' box.
         outxm = 1
         main()
     #
@@ -321,44 +345,54 @@ def newLastXMerge():
     #
 def browseFiles():
     files = []
+    # Look in the system .ini file for the last Output Folder we used.
     outFolderChk = sysconfparse.get('folders', 'output_folder')
     LastMergeIni = outFolderChk + "\\LastXMerge.ini"
-    outxm = getCtrlVals()[1]        ## Check the controls status value for Output folder selection.
-    chkIniexist = os.path.isfile(LastMergeIni)    ##  look for LastXMerge.ini.
-    if chkIniexist == False:                        #
-        # newLastXMerge()
-        setup()
+    outxm = getCtrlVals()[1]        # Get the controls status value for 'Change Output Folder' selection.
+    chkIniexist = os.path.isfile(LastMergeIni)    #  look for LastXMerge.ini in the last place we worked.
+    if chkIniexist == False:
+        setup()                      # Make a new LastXMerge.ini if necessary.
+    # Otherwise, use the one that was there.
     # Grab the list of paths and filenames from LastXMerge.ini.
     datchk = {k:v for k,v in confparse['files'].items()}
-    dataFolder = confparse.get('folders','data_folder')     ## Get the source data folder name.
-    exportFolder = outFolderChk                             ## Get the export destination folder name.
-    workDir = os.path.expanduser("~")                       ## Get the current user home folder name.
-
+    dataFolder = confparse.get('folders','data_folder')     # Get the source data folder name.
+    exportFolder = outFolderChk                             # Get the export destination folder name.
+    userHome = os.path.expanduser("~")                       # Get the current user home folder name.
     text3.delete("1.0", tk.END)
     text3.insert("1.0", "Select Source ATTOUT .txt, .xlsx or .csv files.")
+    # When there are no files in LastXMerge.ini: 
     if datchk == {}:
-        srcSelection = filedialog.askopenfilenames(
-            initialdir=dataFolder,
-            title="Select Source files.",
-            multiple=True,
-        )
-        if srcSelection != "":
-            srcSelIter = 1
-            for fn in srcSelection:
-                confparse.set('files','file'+str(srcSelIter),os.path.normpath(fn))
-                srcSelIter = srcSelIter + 1
-            dataFolder = os.path.dirname(srcSelection[0])
-            confparse.set('folders','data_folder',os.path.normpath(dataFolder))
-            with open(LastMergeIni, 'w') as csvIni:
-                confparse.write(csvIni)
-        else:
-            keepGoing = messagebox.askyesno("No file was selected.", "Continue? Y/N")
-            if keepGoing == True:
-                window.mainloop()
+        srcSelIter = 1
+        # 'srcSelIter' is our incrementing variable to sequentially number the entries
+        # in LastXMerge.ini so each filename gets a unique key in the config file.
+        moreVar = 1
+        while moreVar == 1:
+            srcSelection = filedialog.askopenfilenames(
+                initialdir=dataFolder,
+                title="Select Source files.",
+                multiple=True,
+                )
+            if srcSelection != "":
+                for fn in srcSelection:
+                    confparse.set('files','file'+str(srcSelIter),os.path.normpath(fn))
+                    srcSelIter = srcSelIter + 1
+                dataFolder = os.path.dirname(srcSelection[0])
+                confparse.set('folders','data_folder',os.path.normpath(dataFolder))
+                with open(LastMergeIni, 'w') as csvIni:
+                    confparse.write(csvIni)
             else:
-                sys.exit()
-    else:
-        srcSelection = datchk
+                keepGoing = messagebox.askyesno("No file was selected.", "Continue? Y/N")
+                if keepGoing == True:
+                    window.mainloop()
+                else:
+                    sys.exit()
+            moreFiles = messagebox.askyesno("Select More Files","Do you want more files? Y/N")
+            if moreFiles == True:
+                moreVar = 1
+            else:
+                moreVar = 0
+            
+    # When there ARE files in LastXMerge.ini.
     datchk = {k:v for k,v in confparse['files'].items()}
     datchkFiles = []
     for k in datchk:
@@ -373,7 +407,7 @@ def browseFiles():
     confparse.set('export', 'exportfilename', getCtrlVals()[3])
     colNameChoice = getCtrlVals()[0]    # Get current Columns Selection checkbox value.
     hdrRowChoice = getCtrlVals()[4]     # Get Header Row Number textbox value.
-    confparse.set("userselections","status",colNameChoice)
+    confparse.set("userselections","columnselection",colNameChoice)
     confparse.set("userselections","headerrow",hdrRowChoice)
     with open(LastMergeIni, 'w') as csvIni:
         confparse.write(csvIni)
@@ -383,24 +417,24 @@ def browseFiles():
     updateWinText()
     return firstFile,exportFolder,datchkFiles
 #
-## COPY SOURCE FILES TO EXPORT FOLDER
+# COPY SOURCE FILES TO EXPORT FOLDER. These are the raw files, prior to conversion.
 #
 def exCOPYcontinue(exportFolder,datchkFiles):
     tempFolder = os.path.join(exportFolder, "temp")
     # if the temp folder exists, skip creation
     if not os.path.isdir(tempFolder):
-        os.makedirs(tempFolder)                 ## Create a temporary folder for working files inside selected folder.
-    sx = 0                                  ## initialize a counter
+        os.makedirs(tempFolder)                 # Create a temporary folder for working files inside selected folder.
+    sx = 0                                  # initialize a counter
     try:
-        for f in datchkFiles:                   ## 'datchkFiles' is filled by 'browseFiles()'
-            if f != "":                         ## It is empty if Cancel was pressed during 'browseFiles()'
-                if sx == 0:                     ## or if the source file was never selected.
+        for f in datchkFiles:                   # 'datchkFiles' is filled by 'browseFiles()'
+            if f != "":                         # It is empty if Cancel was pressed during 'browseFiles()'
+                if sx == 0:                     # or if the source file was never selected.
                     text4.delete('1.0',tk.END)
                 text4.insert('1.0', "Copying " + os.path.basename(f) + '. \n')
                 window.update()
                 time.sleep(.5)
-                shutil.copy(f,tempFolder)     ## Copy the file to the temp folder inside the Output folder.
-                sx = sx + 1                     ## Increment the counter.
+                shutil.copy(f,tempFolder)     # Copy the file to the temp folder inside the Output folder.
+                sx = sx + 1                     # Increment the counter.
     except FileNotFoundError:
         keepGoing = messagebox.askyesno("File Not Found",os.path.basename(f) + " was not found. Exit?")
         if keepGoing == False:
@@ -417,8 +451,8 @@ def exCOPYcontinue(exportFolder,datchkFiles):
     text3.insert(tk.END, "Finished copying " + str(sx) + ' files to the Temp Folder. ')
     window.update()
 #
-##  NOW THAT SOURCE FILES ARE IN THE OUTPUT FOLDER, IT'S TIME TO CONVERT:
-##  Create lists of existing files of the various file-types we want to deal with.
+#  NOW THAT SOURCE FILES ARE IN THE OUTPUT FOLDER, IT'S TIME TO CONVERT:
+#  Create lists of existing files of the various file-types we want to deal with.
 #
 def dataCompile():
     
@@ -431,10 +465,10 @@ def dataCompile():
 
 def initialize(exportFolder):
     tempFolder = os.path.join(exportFolder, "temp")
-    xlsext = []                                                    ## a list for files with .xls extensions. 
-    xlsxext = []                                                   ## a list for files with .xlsx extensions. 
-    txtext = []                                                    ## a list for files with .txt extensions. 
-    csvext = []                                                    ## a list for files with .csv extensions. 
+    xlsext = []                                                    # a list for files with .xls extensions. 
+    xlsxext = []                                                   # a list for files with .xlsx extensions. 
+    txtext = []                                                    # a list for files with .txt extensions. 
+    csvext = []                                                    # a list for files with .csv extensions. 
     allEntr = []
     with os.scandir(tempFolder) as listOfEntries:
         for entry in listOfEntries:
@@ -453,8 +487,8 @@ def initialize(exportFolder):
     return xlsext, xlsxext, txtext, csvext, allEntr
 
 #
-######  DEFINE .csv FILE HANDLER FUNCTION
-## This is for comma-delimited files (hence the .csv extension).
+#  DEFINE .csv FILE HANDLER FUNCTION
+# This is for comma-delimited files (hence the .csv extension).
 #
 def csvFileCnvrt(exportFolder,csvext,convertedList):
     tempFolder = os.path.join(exportFolder, "temp")
@@ -479,10 +513,10 @@ def csvFileCnvrt(exportFolder,csvext,convertedList):
         window.update()
     return convertedList
 #
-##  END .csv FILE HANDLER
+#  END .csv FILE HANDLER
 #
-######  DEFINE .txt FILE HANDLER FUNCTION
-##  These files are Tab-delimited. Typically from AutoCAD's ATTOUT routine.
+#  DEFINE .txt FILE HANDLER FUNCTION
+#  These files are Tab-delimited. Typically from AutoCAD's ATTOUT routine.
 #
 def txtFileCnvrt(exportFolder,txtext,convertedList):
     tempFolder = os.path.join(exportFolder, "temp")
@@ -503,9 +537,9 @@ def txtFileCnvrt(exportFolder,txtext,convertedList):
         window.update()
     return convertedList
 #
-##  END .txt FILE HANDLER
+#  END .txt FILE HANDLER
 #
-######  DEFINE .xls FILE HANDLER FUNCTION
+#  DEFINE .xls FILE HANDLER FUNCTION
 #
 def xlsFileCnvrt(exportFolder,xlsext,convertedList):
     import pyexcel
@@ -516,7 +550,7 @@ def xlsFileCnvrt(exportFolder,xlsext,convertedList):
     for xlsFile in xlsext:
         xf = xlsFile
         xlsFile = tempFolder + "/" + xlsFile
-        xlsxFile = xlsFile.replace('xls','xlsx')             ## .xls file.  We need an .xlsx file.
+        xlsxFile = xlsFile.replace('xls','xlsx')             # .xls file.  We need an .xlsx file.
         pyexcel.save_book_as(file_name=xlsFile,
                     dest_file_name=xlsxFile)
         convertedList.append(xlsxFile)
@@ -524,13 +558,13 @@ def xlsFileCnvrt(exportFolder,xlsext,convertedList):
         window.update()
     return convertedList
 #
-##  END .xls FILE HANDLER
+#  END .xls FILE HANDLER
 #
-#### Column Name Row Number Determiner ####
-## Many of the spreadsheets in our work have a single cell on Row 1 with a title in it.
-## Row 2 then contains the header row with column names in it.
-## If the user has not specified a specific number of rows to skip, this function
-## will check for the existence of a Title above the Header Row.
+# Column Name Row Number Determiner #
+# Many of the spreadsheets in our work have a single cell on Row 1 with a title in it.
+# Row 2 then contains the header row with column names in it.
+# If the user has not specified a specific number of rows to skip, this function
+# will check for the existence of a Title above the Header Row.
 #
 def findHeaderRow(filename,sheetname):
     hdrrwFnVar = getCtrlVals()[4]               # lookup the Header Row value.
@@ -544,44 +578,44 @@ def findHeaderRow(filename,sheetname):
     if str.lower(hdrrwFnVar) == 'auto':
         wb1 = xl.load_workbook(filename, data_only=True)
         if sheetname == None:
-            sheetname = 0                       ## Check the first default sheet when 'sheetname' is not specififed.
+            sheetname = 0                       # Check the first default sheet when 'sheetname' is not specififed.
         ws1 = wb1.worksheets[sheetname]
-        ii = range(1,5)                         ## We will check 4 cells to determine whether it is a title or header row.
-        cellAddr1 = []                          ## Set up to check row 1.
+        ii = range(1,5)                         # We will check 4 cells to determine whether it is a title or header row.
+        cellAddr1 = []                          # Set up to check row 1.
         for i in ii:
             thisOne = ws1.cell(row = 1, column = i).value
             if thisOne != " " and thisOne != None:
                 cellAddr1.append(thisOne)
-        if len(cellAddr1) < 4:                  ## Row 1 had fewer than 4 cells with data in them.
-            ii = range(1,5)                     ## Check 4 cells in row 2.
-            cellAddr2 = []                      ## Set up to check row 2.
+        if len(cellAddr1) < 4:                  # Row 1 had fewer than 4 cells with data in them.
+            ii = range(1,5)                     # Check 4 cells in row 2.
+            cellAddr2 = []                      # Set up to check row 2.
             for i in ii:
                 thisOne = ws1.cell(row = 2, column = i).value
                 if thisOne != " " and thisOne != None:
                     cellAddr2.append(thisOne)
-            if len(cellAddr2) < 4:              ## If row 2 has less than 4 full cells, default back to row 1 as header.
-                hrow = 1                        ## Maybe this sheet simply has fewer than 4 columns.  (??)
+            if len(cellAddr2) < 4:              # If row 2 has less than 4 full cells, default back to row 1 as header.
+                hrow = 1                        # Maybe this sheet simply has fewer than 4 columns.  (??)
             else:
-                hrow = 2                        ## Otherwise, we'll use row 2 as the header row because row 1 is a title.
+                hrow = 2                        # Otherwise, we'll use row 2 as the header row because row 1 is a title.
         else:
-            hrow = 1                            ## Because row 1 had at least 4 full cells, it is likely the header row.
+            hrow = 1                            # Because row 1 had at least 4 full cells, it is likely the header row.
     return hrow
 
 #
-##  DEFINE COLUMN NAMES GRABBER FUNCTION
-##  We are using the first source file's column names as the definition for the Ouput file.
+#  DEFINE COLUMN NAMES GRABBER FUNCTION
+#  We are using the first source file's column names as the definition for the Ouput file.
 #
 def makeColsList(filename):
-    with warnings.catch_warnings(record=True):         ## these two lines are a sad way to stop getting a 
-        warnings.simplefilter("always")                ## warning about the lack of a default style
+    with warnings.catch_warnings(record=True):         # these two lines are a sad way to stop getting a 
+        warnings.simplefilter("always")                # warning about the lack of a default style
         wb1 = xl.load_workbook(filename, data_only=True) 
         ws1 = wb1.worksheets[0] 
-        mr = ws1.max_row                               ## Get the total number of rows in the Source spreadsheet.
+        mr = ws1.max_row                               # Get the total number of rows in the Source spreadsheet.
         HeaderRow = findHeaderRow(filename,0)
         columnsDB = []
-        SrcColIndex = {}                                ## SrcColIndex will be the dictionary of Source column names.
-        Current  = 0                                   ## Get all of the column names from the Source file.
-        for itrCol in ws1.iter_cols(min_row=HeaderRow, max_col=ws1.max_column):   ## Store them in the dictionary. Key is the Name, value is the column number.
+        SrcColIndex = {}                                # SrcColIndex will be the dictionary of Source column names.
+        Current  = 0                                   # Get all of the column names from the Source file.
+        for itrCol in ws1.iter_cols(min_row=HeaderRow, max_col=ws1.max_column):   # Store them in the dictionary. Key is the Name, value is the column number.
             if itrCol[0].value != None:
                 SrcColIndex[itrCol[0].value] = Current
             Current += 1
@@ -589,51 +623,51 @@ def makeColsList(filename):
             columnsDB.append(k)
     return columnsDB
 #
-###### CONFIGURATION DATA GRABBER (Use this when there's a Column Name Configuration spreadsheet in use.)
+# CONFIGURATION DATA GRABBER (Use this when there's a Column Name Configuration spreadsheet in use.)
 #
-def colConfig():                                        ## open the Configuration workbook ColumnNames.xlsx .
+def colConfig():                                        # open the Configuration workbook ColumnNames.xlsx .
     configFile = manageColNames()
     text1.insert(tk.INSERT,"\nColumn Config File: " + str(configFile))
     window.update()
-    confwb = xl.load_workbook(configFile, data_only=True)  ## Load the Configuation workbook.
+    confwb = xl.load_workbook(configFile, data_only=True)  # Load the Configuation workbook.
     try:
-        confws = confwb["MERGE"]                              ## Use the sheet labeled with the MERGE label.
-    except KeyError as kerr:                               ## DataColumnsNames may not be up to date.
+        confws = confwb["MERGE"]                              # Use the sheet labeled with the MERGE label.
+    except KeyError as kerr:                               # DataColumnsNames may not be up to date.
         messagebox.showinfo("Column Name Issue.",kerr)
         text4.delete('1.0',tk.END)
         text4.insert(tk.INSERT, "ColumnNames.xlsx needs attention.")
-        msg = "Edit ColumnNames.\nWe need to Exit."
-        endWithError(msg)
-    columnsDB = []                                          ## Set up the column name list.
-    tcnMaxR = confws.max_row                               ## Find out how many rows there are. (Not just Col A)
-    for cn in range(1,tcnMaxR+1):                          ## Iterate through those rows and 
-        colNameAddr = confws.cell(row = cn, column = 1)    ## memorize the cell address, then
-        text_string = colNameAddr.value                    ## set about making sure the name is normalized unicode text.
-        if text_string != None:                            ## This ignores rows with empty column A but text in B or . . . 
+        editNow = messagebox.askyesno("Edit ColumnNames Now?", "Yes to edit now, No to exit.")
+        if editNow == True:
+            editColNams()
+        else:
+            sys.exit()
+    columnsDB = []                                          # Set up the column name list.
+    tcnMaxR = confws.max_row                               # Find out how many rows there are. (Not just Col A)
+    for cn in range(1,tcnMaxR+1):                          # Iterate through those rows and 
+        colNameAddr = confws.cell(row = cn, column = 1)    # memorize the cell address, then
+        text_string = colNameAddr.value                    # set about making sure the name is normalized unicode text.
+        if text_string != None:                            # This ignores rows with empty column A but text in B or . . . 
             cleanedColName = unicodedata.normalize("NFKD",text_string)
-            columnsDB.append(cleanedColName)                    ## append the column names to the list.
+            columnsDB.append(cleanedColName)                    # append the column names to the list.
     return columnsDB
 #
-## COPY DATA FROM SOURCE FILES TO DESTINATION FILE
+# COPY DATA FROM SOURCE FILES TO DESTINATION FILE
 #       convertedList brings in the filenames for source files.
 #
 def copyAll(convertedList,itemList,exportFolder,DESTfilename):
     tempFolder = os.path.join(exportFolder, "temp")
-    ColNames = itemList                                         ## Rename itemList to colNames for clarity.
+    ColNames = itemList                                         # Rename itemList to colNames for clarity.
     sumRow = 0
-    SrcMissCol = ""                                   ## Set variable to show Source had Missing Columns.
+    SrcMissCol = ""                                   # Set variable to show Source had Missing Columns.
     for sn in convertedList:
         text4.delete('1.0',tk.END)
         text4.insert(tk.INSERT, "\nProcessing Sources: \n" + os.path.basename(sn) + ".")
-        src1 = xl.load_workbook(sn, data_only=True)             ## Get source file as 'src1'.
-        srcSh1 = src1.worksheets[0]                             ## Set source sheet to first sheet.
-        # srcSh1_ttlr = srcSh1.max_row                            ## Get the total number of rows for the source sheet.
-        #
-        ## COUNT ONLY ROWS THAT ACTUALLY HAVE DATA IN THEM.
-        ## openpyxl's max_row() function returns the index of the last row, not the last row with data in it.
-        ## That means if there are tons of blank rows, they all get copied to the Output data file, which
-        ## is not optimal.  So here we create an index of rows that are NOT empty in a list named srcRowIdx.
-        #
+        src1 = xl.load_workbook(sn, data_only=True)             # Get source file as 'src1'.
+        srcSh1 = src1.worksheets[0]                             # Set source sheet to first sheet.
+        # COUNT ONLY ROWS THAT ACTUALLY HAVE DATA IN THEM.
+        # openpyxl's max_row() function returns the index of the last row, not the last row with data in it.
+        # That means if there are tons of blank rows, they all get copied to the Output data file, which
+        # is not optimal.  So here we create an index of rows that are NOT empty in a list named srcRowIdx.
         srcSh1_mr = 0                                           
         srcRowIdx = []
         for row in srcSh1:
@@ -643,59 +677,59 @@ def copyAll(convertedList,itemList,exportFolder,DESTfilename):
                 srcRowIdx.append(copyRow)
         text4.insert(tk.INSERT, "\nData is in " + str(srcSh1_mr - 1) + " rows.")
         window.update()
-        out1 = xl.load_workbook(DESTfilename, data_only=True)   ## Get destination file as 'out1'.
-        outSh1 = out1.worksheets[0]                             ## Set destination sheet to first sheet.
-        outSh1_mr = outSh1.max_row                              ## Get the max row for the destination sheet
-        outRow1 = outSh1_mr + 1                                 ## Set the initial destination row to write data into.
-        jWrite = 1                                              ## Set an initial column number to write data into.
+        out1 = xl.load_workbook(DESTfilename, data_only=True)   # Get destination file as 'out1'.
+        outSh1 = out1.worksheets[0]                             # Set destination sheet to first sheet.
+        outSh1_mr = outSh1.max_row                              # Get the max row for the destination sheet
+        outRow1 = outSh1_mr + 1                                 # Set the initial destination row to write data into.
+        jWrite = 1                                              # Set an initial column number to write data into.
         #
-        ## We want to record the index of the source file's column names because this allows us to import data from files
-        ## that have the same column names, but in a different order from the destination file. As long as the column name
-        ## matches exactly, we'll get the data from it no matter where it is in the sheet.
+        # We want to record the index of the source file's column names because this allows us to import data from files
+        # that have the same column names, but in a different order from the destination file. As long as the column name
+        # matches exactly, we'll get the data from it no matter where it is in the sheet.
         #
-        ## We need to get the index number of the SOURCE column names. ColNames (itemList) has what we WANT. This index is what we HAVE.
-        SrcColIndex = {}                                  ## SrcColIndex is the dictionary of Source column names. Key is the Name, value is the column number.
-        SrcHeader = findHeaderRow(sn,0)                   ## Header is the row where column names are expected to be found.
-        Current  = 0                                      ## Get all of the column names from the Source file.
-        for itrCol in srcSh1.iter_cols(min_row=SrcHeader, max_row = SrcHeader, max_col=srcSh1.max_column):   ## Store them in the dictionary.
+        # We need to get the index number of the SOURCE column names. ColNames (itemList) has what we WANT. This index is what we HAVE.
+        SrcColIndex = {}                                  # SrcColIndex is the dictionary of Source column names. Key is the Name, value is the column number.
+        SrcHeader = findHeaderRow(sn,0)                   # Header is the row where column names are expected to be found.
+        Current  = 0                                      # Get all of the column names from the Source file.
+        for itrCol in srcSh1.iter_cols(min_row=SrcHeader, max_row = SrcHeader, max_col=srcSh1.max_column):   # Store them in the dictionary.
             SrcColIndex[itrCol[0].value] = Current
             Current += 1
-        SrcColIndex['SRCFILE'] = Current                  ## Add an index entry for the SRCFILE name at the end of the dictionary.
+        SrcColIndex['SRCFILE'] = Current                  # Add an index entry for the SRCFILE name at the end of the dictionary.
         DestColIndex = {}
-        Current  = 0                                      ## Get any column names from the Destination file.
-        for itrCol in outSh1.iter_cols(min_row=1, max_row = 1, max_col=outSh1.max_column):   ## Store them in the dictionary.
+        Current  = 0                                      # Get any column names from the Destination file.
+        for itrCol in outSh1.iter_cols(min_row=1, max_row = 1, max_col=outSh1.max_column):   # Store them in the dictionary.
             DestColIndex[itrCol[0].value] = Current
             Current += 1
         try:
 
-            for n in ColNames:                                              ## n is a Column Name .
-                text4.insert(tk.INSERT, "\n - Filling " + n + ".")          ## Provide user feedback.
+            for n in ColNames:                                              # n is a Column Name .
+                text4.insert(tk.INSERT, "\n - Filling " + n + ".")          # Provide user feedback.
                 window.update()
                 try:
-                    jRead = SrcColIndex[n] + 1                                  ## jRead is the column index from the Source's same-named column 
-                                                                                ## (key: column name, value: column number).
-                except KeyError:                                                ## If Source doesn't have this column, flag it with 99999
-                    jRead = 99999                                               ## That allows us to provide it with an empty string.
-                jWrite = DestColIndex[n] + 1                                    ## Memorize the column index from the Destination column. Assume nothing.
+                    jRead = SrcColIndex[n] + 1                                  # jRead is the column index from the Source's same-named column 
+                                                                                # (key: column name, value: column number).
+                except KeyError:                                                # If Source doesn't have this column, flag it with 99999
+                    jRead = 99999                                               # That allows us to provide it with an empty string.
+                jWrite = DestColIndex[n] + 1                                    # Memorize the column index from the Destination column. Assume nothing.
                 outRow = outRow1                                                # Not sure why I did this, I like to think there was a reason.
                 srcRowsLen = len(srcRowIdx)
-                for rowVar in range(SrcHeader, srcRowsLen):                     ## From the Header row + 1 to the SOURCE sheet MAX row number + 1.
-                            ## instead of max_row, we use a list of row index numbers created above.
+                for rowVar in range(SrcHeader, srcRowsLen):                     # From the Header row + 1 to the SOURCE sheet MAX row number + 1.
+                            # instead of max_row, we use a list of row index numbers created above.
                     rowNum = srcRowIdx[rowVar]
                     if jRead == 99999:
                         SrcMissCol = "y"
-                        cValue = ""                                             ## If Source didn't have the column, provide a empty string value.
-                        outSh1.cell(row = outRow, column = jWrite).value = cValue ## writing the null value to destination excel file
+                        cValue = ""                                             # If Source didn't have the column, provide a empty string value.
+                        outSh1.cell(row = outRow, column = jWrite).value = cValue # writing the null value to destination excel file
                     else:
                         if n == 'SRCFILE':
-                            cValue = pathlib.PurePath(sn).stem                  ## Grab just the filename w/o the extension.
+                            cValue = pathlib.PurePath(sn).stem                  # Grab just the filename w/o the extension.
                         else:
-                            cValue = srcSh1.cell(row = rowNum, column = jRead).value               ## read cell value from source excel file
+                            cValue = srcSh1.cell(row = rowNum, column = jRead).value               # read cell value from source excel file
                         if cValue == "<>":
                             cValue = ""
-                        outSh1.cell(row = outRow, column = jWrite).value = cValue ## writing the read value to destination excel file
-                        ## if we are at the 
-                    outRow = outRow + 1                                         ## increment the destination row number.
+                        outSh1.cell(row = outRow, column = jWrite).value = cValue # writing the read value to destination excel file
+                        # if we are at the 
+                    outRow = outRow + 1                                         # increment the destination row number.
         except Exception as e:
             endWithError(str(e) + "\nCheck your Header Row number.")
         out1.save(DESTfilename)
@@ -711,7 +745,7 @@ def copyAll(convertedList,itemList,exportFolder,DESTfilename):
     text3.delete('1.0',tk.END)
     text3.insert(tk.INSERT,os.path.basename(DESTfilename) + " was created.")
 #
-## PURGE ALL FILES FROM THE OUTPUT FOLDER
+# PURGE ALL FILES FROM THE OUTPUT FOLDER
 #
 def purgeExp():
     ofcchk = getCtrlVals()[2]
@@ -741,84 +775,74 @@ def purgeExp():
             window.update()
     OFClearChkBox.deselect()
 #
-## THE DEFINITIVE EXIT FUNCTION.
+# THE DEFINITIVE EXIT FUNCTION.
 #
 def exit():
-    ofcchk = getCtrlVals()[2]   ## Is 'Clear Output Folder' checked?
+    ofcchk = getCtrlVals()[2]   # Is 'Clear Output Folder' checked?
     if ofcchk == 1:
         purgeExp()
     sys.exit()
 #
-## END WITH ERROR MESSAGE
+# END WITH ERROR MESSAGE
 #
 def endWithError(msg):
     messagebox.showinfo("UhOh",msg)
     sys.exit()
 #
-##  GET NEW DATA SOURCE FILES.
+#  Somebody pushed the 'Get New Data' button. GET NEW DATA SOURCE FILES.
 #
-def newData():  ## Resets everything as if there is no data file, then calls main()
-    sysconfparse.read(XMergeIni)            ## Use the system-wide ini file.
-    outFolderChk = sysconfparse.get('folders', 'output_folder')    ## from XMerge.ini
+def newData():  # Resets everything as if there is no data file, then calls main()
+    sysconfparse.read(XMergeIni)            # Use the system-wide ini file.
+    outFolderChk = sysconfparse.get('folders', 'output_folder')    # from XMerge.ini
     LastMergeIni = outFolderChk + "\\LastXMerge.ini"
-    ## If Change Output Folder is checked, leave this LastXMerge.ini file alone.
-    ## If it's not checked, we want new data in the same Output Folder.
-    ## So, then, we need to clear the filenames from LastXMerge.ini in this 
-    ## Output folder.
-    outxm = getCtrlVals()[1]        ## Check the controls status value for Output folder selection.
+    # If Change Output Folder is checked, leave this LastXMerge.ini file alone.
+    # If it's not checked, we want new data in the same Output Folder.
+    # So, then, we need to clear the filenames from LastXMerge.ini in this 
+    # Output folder.
+    outxm = getCtrlVals()[1]        # Check the controls status value for Output folder selection.
     text3.delete('1.0',tk.END)
     text3.insert(tk.END, "Clearing and getting new job data.")
-    ofcchk = getCtrlVals()[2]       ## Look at 'Clear Output Folder' checkbox.
-    if ofcchk == 1:                 ## It's checked, we know what to do.
+    ofcchk = getCtrlVals()[2]       # Look at 'Clear Output Folder' checkbox.
+    if ofcchk == 1:                 # It's checked, we know what to do.
         text4.delete('1.0',tk.END)
         text4.insert(tk.INSERT, "Purging the Exports Folder.")
-        purgeExp()                  ## Go to the Clear Output function.
-    else:                           ## Not checked, so get verification.
-        confparse.read(LastMergeIni)            ## Shift to the 'per source folder' ini file.
-        exportsFolder = sysconfparse.get('folders', 'output_folder')
-        if exportsFolder != "":
-            fileChk = os.listdir(exportsFolder)
-            if fileChk != []:       ## There are files in the output folder.
-                keepGoing = messagebox.askyesno("Purge Output Folder?", "Output Folder Contains Files.\nPurge it?")
-                if keepGoing == True:          ## We asked. They said yes.
-                    OFClearChkBox.select()  ## Mark the 'Clear Output Folder' box.
-                    purgeExp()              ## Go to the Clear Output function.    
-    text1.delete("1.0", tk.END)         ## The response was 'No', so move on.
+        purgeExp()                  # Go to the Clear Output function.
+    text1.delete("1.0", tk.END)
     text4.delete("1.0", tk.END)
     text4.insert(tk.INSERT, genInfo)
     text3.delete("1.0", tk.END)
     text2.delete("1.0", tk.END)
     window.update()
     if outxm == 1:
-        newOutFolder()
+        outFolderChk = newOutFolder()
     if outxm == 0:
-        chkIniexist = os.path.isfile(LastMergeIni)      ##  look for LastXMerge.ini.
-        if chkIniexist == False:                        ########
-            confparse["files"]={}                       ##
-            confparse["userselections"]={"status":""}     ##
-            confparse["folders"]={"data_folder":""}     ##  Create a new LastXMerge.ini file.
+        chkIniexist = os.path.isfile(LastMergeIni)      #  look for LastXMerge.ini.
+        if chkIniexist == False:                        # There wasn't one.
+            confparse["files"]={}                       # Set up the basic settings.
+            confparse["userselections"]={"columnselection":""}   #
+            confparse["folders"]={"data_folder":""}     #
             xpfn = getCtrlVals()[3]
-            confparse["export"]={"exportfilename":xpfn}   ##
-            with open(LastMergeIni, 'w') as LMIni:      ##
-                confparse.write(LMIni)                  ########
-        confparse.read(LastMergeIni)            ## Shift to the 'per source folder' ini file.
-        # expFileName = confparse.get('export','exportfilename')
+            confparse["export"]={"exportfilename":xpfn} # Use whatever filename is on the screen.
+            with open(LastMergeIni, 'w') as LMIni:      #  Create a new LastXMerge.ini file.
+                confparse.write(LMIni)                  #
+        # Now there is a LastXMerge.ini, either old or new.
+        confparse.read(LastMergeIni)            # Read it.
         expFileName = getCtrlVals()[3]
-        if expFileName[-4:] != "xlsx":
+        if expFileName[-4:] != "xlsx":          # if not an .xlsx extension, supply it.
             expFileName = expFileName + ".xlsx"
         xportFn.set(expFileName)
         confparse.set("export","exportfilename",expFileName)
         datchk = {k:v for k,v in confparse['files'].items()}
         for k in datchk:
-            confparse.remove_option('files',k)  ## Remove all filename entries.
-        confparse.set('folders','data_folder',"")
-        with open(LastMergeIni, 'w') as csvIni: ## Save the edits.
+            confparse.remove_option('files',k)      # Purge any and all filename entries.
+        confparse.set('folders','data_folder',"")   # Reset the Output Folder to blank.
+        with open(LastMergeIni, 'w') as csvIni: # Save the edits.
             confparse.write(csvIni)
-    main()
+    main()      # Re-run the main() function, which sends us back to gathering sources.
+                # That gathering happens in browseFiles().
 #
-##################################################################
-##  EVERYTHING SOUTH OF HERE defines the tKinter windows stuff  ##
-##################################################################
+#  EVERYTHING SOUTH OF HERE defines the tKinter windows stuff  #
+#
 #
 window = tk.Tk()  # Create the root window.  'root' is the common name, but I named this one 'window'.
 window.title("XMerge: Data Source File Merger")  # Set window title
@@ -853,12 +877,12 @@ label_file_explorer = tk.Label(
 )
 
 #
-## FEATURE NOT READY
+# FEATURE NOT READY
 #
 def featureNotReady():
     messagebox.showinfo(title='Not Yet', message='That feature is not ready.')
 #
-## DEFINE THE ABOUT WINDOW
+# DEFINE THE ABOUT WINDOW
 #
 def aboutWindow():
     aw = tk.Toplevel(window)
@@ -880,13 +904,13 @@ def aboutWindow():
 "\n\nCheck out Help for more details.\n\nYour XMerge installation and supporting files are located at:\n\n" + path_to_dat + "\n"
 "\nStart with the 'Get New Data' button to the left.\n\n- Greg Sanders, aka Dr.Gerg, aka Casspop\n"
 "\nXMerge is written in Python and compiled using PyInstaller.\nInno Setup Compiler builds the Windows installer.\n\n"
-"https://www.drgerg.com\nhttps://github.com/casspop/XMerge")
+"https://www.drgerg.com\nhttps://github.com/drgerg/XMerge")
 #
-## DEFINE THE HELP WINDOW
+# DEFINE THE HELP WINDOW
 #
 def helpWindow():
     hw = tk.Toplevel(window)
-    hw.tk.call('tk', 'scaling', 1.0)    ## This prevents the text being huge on hiDPI displays.
+    hw.tk.call('tk', 'scaling', 1.0)    # This prevents the text being huge on hiDPI displays.
     hw.title("XMerge Help")
     hwinWd = 600  # Set window size and placement
     hwinHt = 600
@@ -905,29 +929,30 @@ def manageColNames():
     outFolderChk = sysconfparse.get('folders', 'output_folder')
     colPath = str(outFolderChk + '/ColumnNames.xlsx')
     coln = pathlib.PurePath(colPath)
-    fileChk = os.path.isfile(coln)           ## Look for the file.
-    if fileChk == False:
+    fileChk = os.path.isfile(coln)  # Look for the file.
+    if fileChk == False:            # copy it if absent.
         shutil.copy(path_to_dat + '\ColumnNames.xlsx',outFolderChk)
-        text4.insert(tk.INSERT, "\nAdded ColumnNames.xlsx to Output Folder.")
-        doEdit = messagebox.askyesno("Edit ColumnNames?","Do you need to edit ColumnNames.xlsx?")
+        text4.insert(tk.INSERT, "\nColumnNames.xlsx was missing. Added it to Output Folder.")
+        # Ask if we need to edit the freshly copied file. Almost certainly yes.
+        doEdit = messagebox.askyesno("ColumnNames.xlsx was just copied over.","Do you probably need to edit it.")
         if doEdit == True:
             editColNams()
     return coln
 
 def editColNams():
-    coln = manageColNames()
-    # coln = pathlib.PurePath(colPath)
-    os.startfile(coln)
+    coln = manageColNames() # The first part of manageColNames() provides our path and filename.
+    colNameVar.set("Conf")
+    os.startfile(coln)      # Open the spreadsheet using the system default application.
     messagebox.showinfo("Editing ColumnNames","After editing, hit 'GO' to do your Merge.")
     setup()
     window.mainloop()
 #
-## MENU AND MENU ITEMS
+# MENU AND MENU ITEMS
 #
 tk.Frame(window)
 menu = tk.Menu(window)
 window.config(menu=menu)
-nnFont = Font(family="Segoe UI", size=10)          ## Set the base font
+nnFont = Font(family="Segoe UI", size=10)          # Set the base font
 fileMenu = tk.Menu(menu, tearoff=False)
 fileMenu.add_command(label="Edit ColumnNames.xlxs", command=editColNams)
 fileMenu.add_command(label="Exit", command=exit)
@@ -941,16 +966,17 @@ menu.add_cascade(label="Help", menu=editMenu)
 window.iconbitmap(default = './ico/XMergeicon.ico')
 
 genInfo = ("This tool converts and merges multiple source files into one .xlsx file."
-"\n\nClick the 'Get New Data' or the 'GO' button.\nBefore you select Data files, "
-"you will be prompted to select your Output Folder. This is also the working folder. The source files you select "
-"for merging will first be copied to a temp folder in the output folder.  When"
-"XMerge finishes, the temp folder is removed, leaving a fresh sparkly shine."
+"\n\nClick either the 'Get New Data' or the 'GO' button.\n\n"
+"XMerge will remember the last job, and start there next time.\n\n"
+"The Output Folder shown above is also the working folder. The source files you select "
+"for merging will first be copied to a temp folder in the Output Folder.  When"
+"XMerge finishes, that temp folder is removed, leaving a fresh sparkly shine."
 "\n\nBy default, all columns in the first file processed will define the "
 "header row for the merged file.  However, you can configure which columns are merged "
 "by editing ColumnNames.xlsx.\n\n'Edit ColumnNames.xlsx' is under the File menu.")
 
 #
-## SET UP RADIO BUTTONS FOR COLUMN NAME SELECTION
+# SET UP RADIO BUTTONS FOR COLUMN NAME SELECTION
 #
 # "controlsFrame" frames them nicely.
 #
@@ -974,7 +1000,7 @@ cs1.grid(column=0, row=1, sticky='nw')                                          
 cs2 = tk.Radiobutton(rbframe, text ="Configured Cols", variable = colNameVar, value="conf", command=getCtrlVals) # repeat
 cs2.grid(column=0, row=2, sticky='nw')
 #
-## Set up push-buttons
+# Set up push-buttons
 #
 button_go = ttk.Button(controlsFrame, text="Get New Data", command=newData)         # "Get New Data" button
 button_go.grid(column=0, row=6, padx=10, pady=10, sticky='n')                       # Place New Data button in grid
@@ -983,7 +1009,7 @@ button_go.grid(column=0, row=11, padx=10, pady=10, sticky='n')                  
 button_exit = ttk.Button(controlsFrame, text="Exit", command=exit)                  # "Exit" button
 button_exit.grid(column=0, row=12, padx=10, pady=10, sticky='n')                    # Place Exit button in grid
 #
-## Set up check boxes
+# Set up check boxes
 #
 outxmVar = tk.IntVar(value=1)
 outFilesChkBox = tk.Checkbutton(controlsFrame,text='Change Output Folder', variable=outxmVar, onvalue=1, offvalue=0, command=getCtrlVals)      # define it
@@ -995,7 +1021,7 @@ aFnVar = tk.IntVar(value=0)
 aFnChkBox = tk.Checkbutton(controlsFrame,text='Append Src Filenames', variable=aFnVar, onvalue=1, offvalue=0, command=getCtrlVals)      # define it
 aFnChkBox.grid(column=0, row=5, sticky='nw')                                                   # place it
 #
-## Set up xportFnVar text entry box
+# Set up xportFnVar text entry box
 #
 xportFn = tk.StringVar(value = "XMerge_Export.xlsx")
 xportFnLabel = tk.Label(controlsFrame, text="Export Filename:")
@@ -1003,14 +1029,14 @@ xportFnEntry = tk.Entry(controlsFrame, justify='center', textvariable = xportFn,
 xportFnLabel.grid(column=0, row=7)
 xportFnEntry.grid(column=0, row=8)
 #
-## Set up HeaderRowVar text entry box
+# Set up HeaderRowVar text entry box
 #
 hdrrwFn = tk.StringVar(value = "auto")
 hdrrwFnLabel = tk.Label(controlsFrame, text="Header Row Number:")
 hdrrwFnEntry = tk.Entry(controlsFrame, justify='center', textvariable = hdrrwFn, width=6)
 hdrrwFnLabel.grid(column=0, row=9, pady=(10,0), sticky='s')
 hdrrwFnEntry.grid(column=0, row=10, sticky='n')
-## Set up text windows
+# Set up text windows
 #
 text1 = tk.Text(window, height=6, width=150, wrap=tk.WORD, font=nnFont)
 text2 = tk.Text(window, height=2, width=150, font=nnFont)
@@ -1042,7 +1068,7 @@ text4.config(yscrollcommand=scrollbar.set)
 scrollbar.config(command=text4.yview)
 
 #
-## EXPLANATION TEXT ON MAIN WINDOW.
+# EXPLANATION TEXT ON MAIN WINDOW.
 #
 # final = []
 # dupesList = []
