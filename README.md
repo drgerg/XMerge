@@ -15,7 +15,7 @@ The output file will have a header row that was created one of two ways:
  - from the source files: copying all the column headings,
  - from a configuration sheet you defined.
 
-It's a pretty easy tool to use.  You can use it unattended from a terminal.  xmerge.exe -u "path-to-existing-LastXMerge.ini-file" gets that done.
+It's a pretty easy tool to use.  You can use it unattended from a terminal.  **xmerge.exe -u "path-to-existing-LastXMerge.ini-file"** gets that done.
   The -c commandline argument generates a .csv output file.  
   The -x commandline argument prevents the default .xlsx output file.  
 
