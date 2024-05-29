@@ -16,8 +16,8 @@ The output file will have a header row that was created one of two ways:
  - from a configuration sheet you defined.
 
 It's a pretty easy tool to use.  You can use it unattended from a terminal.  xmerge.exe -u "path-to-existing-LastXMerge.ini-file" gets that done.
-The -c commandline argument generates a .csv output file.
-The -x commandline argument prevents the default .xlsx output file.
+  The -c commandline argument generates a .csv output file.  
+  The -x commandline argument prevents the default .xlsx output file.  
 
 XMerge was written in Python.  The interface is Tkinter, which is an adequate GUI platform but won't win any beauty contests.  This was complied into a Windows executable using Pyinstaller, and then Inno Setup Compiler 6.2.0 cooked it down into a single .exe installer.
 
