@@ -1,8 +1,11 @@
-This is XMerge v1.4.0
+This is XMerge v1.4.2
 
-Changes made in v1.4.0:
-1. Finally added the ability to select sources scattered all over the place.
-2. Insure the .ini file is read when a new output folder is selected.
-3. Upgraded tkhtmlview to v0.1.3 and updated some help text.
-4. Tidied up a bit in general.
-5. Got rid of the annoying 'Purge output folder?' prompt.
+Changes in v1.4.1:
+      Added support for a '-u' commandline parameter to support unattended merging by pointing to an existing LastXMerge.ini file.
+
+Changes in v1.4.2:
+      1. Add two new commandline parameters: 
+            -x turns off .xlsx output.
+            -c turns on .csv output.
+      2. Added checkboxes to allow output format change.
+      3. Resolved issue when input filenames are the same.

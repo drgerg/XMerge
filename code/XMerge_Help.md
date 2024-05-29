@@ -63,10 +63,21 @@ The original source files are never touched.
 
 **APPEND SRC FILENAMES**: If you check this box, the source file filename (minus the extension) will be added to the last column in your spreadsheet.  This tells you where that row of data came from.
 
+**EXPORT TO .CSV FILE** Create a comma-delimited output file.
+
+**EXPORT TO .XLSX fILE** Create an .xlsx output file. This is the default, so it's checked.
+
 **'GET NEW DATA' BUTTON**:  Use this when you are first starting XMerge, or anytime you want to change data sets.  You will be prompted to clear the outputs folder if there are files in it.  If you opt to NOT clear the outputs folder, the end result will not be what you want.
 
 **'GO' BUTTON**: Use this to copy, convert, and compile the same files you worked with last time.  This is helpful when you have made edits and re-generated the source data files.
 
+### COMMAND-LINE OPTIONS
+
+Typing: xmerge -u "C:\Users\me\Desktop\myspecialfolder\" runs XMerge in unattended mode.  This can only be used to repeat previously run merges.
+
+Typing: xmerge -c results in the creation of a comma-delimited version of your output (Export) file.
+
+Typing: xmerge -x prevents the creation of an .xlsx output (Export) file.
 
 #### FUZZY FONTS ON HI-DPI DISPLAYS
 
@@ -78,7 +89,7 @@ If you see anything other than 100% here:
 
 then you are scaling the desktop on that display.  This may cause what looks like slightly out-of-focus fonts in XMerge.
 
-These fuzzy fonts bother some people (I don't really notice.)  
+These fuzzy fonts are a Tkinter thing.  It bothers some people.  
 
 There is one way to improve things somewhat.  Your mileage may vary.
 

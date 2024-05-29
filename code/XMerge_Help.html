@@ -33,14 +33,20 @@
 <p><strong>CHANGE OUTPUT FOLDER</strong>:  Select this checkbox when you are ready to start a new merge project.  This box is checked by default the first time you run XMerge.</p>
 <p><strong>CLEAR OUTPUT FOLDER</strong>:  Select this checkbox if you want to delete the contents of the current outputs folder before continuing.  Be aware: all files will be deleted from the current output folder (the one listed on line 3 "Currently selected Output folder:".)</p>
 <p><strong>APPEND SRC FILENAMES</strong>: If you check this box, the source file filename (minus the extension) will be added to the last column in your spreadsheet.  This tells you where that row of data came from.</p>
+<p><strong>EXPORT TO .CSV FILE</strong> Create a comma-delimited output file.</p>
+<p><strong>EXPORT TO .XLSX fILE</strong> Create an .xlsx output file. This is the default, so it's checked.</p>
 <p><strong>'GET NEW DATA' BUTTON</strong>:  Use this when you are first starting XMerge, or anytime you want to change data sets.  You will be prompted to clear the outputs folder if there are files in it.  If you opt to NOT clear the outputs folder, the end result will not be what you want.</p>
 <p><strong>'GO' BUTTON</strong>: Use this to copy, convert, and compile the same files you worked with last time.  This is helpful when you have made edits and re-generated the source data files.</p>
+<h3>COMMAND-LINE OPTIONS</h3>
+<p>Typing: xmerge -u "C:\Users\me\Desktop\myspecialfolder\" runs XMerge in unattended mode.  This can only be used to repeat previously run merges.</p>
+<p>Typing: xmerge -c results in the creation of a comma-delimited version of your output (Export) file.</p>
+<p>Typing: xmerge -x prevents the creation of an .xlsx output (Export) file.</p>
 <h4>FUZZY FONTS ON HI-DPI DISPLAYS</h4>
 <p>High-DPI displays introduce the potential for fuzzy fonts due to scaling.  This behavior is determined by your Display Settings in Windows.</p>
 <p>If you see anything other than 100% here:</p>
 <p><img alt="Display Settings" src=".\img\hi-dpi-3.png" /></p>
 <p>then you are scaling the desktop on that display.  This may cause what looks like slightly out-of-focus fonts in XMerge.</p>
-<p>These fuzzy fonts bother some people (I don't really notice.)  </p>
+<p>These fuzzy fonts are a Tkinter thing.  It bothers some people.  </p>
 <p>There is one way to improve things somewhat.  Your mileage may vary.</p>
 <ul>
 <li>Look at the File|About dialog in XMerge to find your installation folder</li>
