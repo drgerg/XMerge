@@ -72,7 +72,7 @@ xmargparse.add_argument(
 clarg = xmargparse.parse_args()
 
 if clarg.unattended:
-    if clarg.unattended[-1:] != "\\":
+    if clarg.unattended[-1:] != "\\" and clarg.unattended[-1:] != "/":
         messagebox.showinfo("Bad -u Path","Provide full path ONLY,\nno filename,"
             "\nand end with backslash.")
         sys.exit()
