@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # 
-# XMerge.py - 2022,23 by Gregory A. Sanders (dr.gerg@drgerg.com)
+# XMerge.py - 2022,23,24 by Gregory A. Sanders (dr.gerg@drgerg.com)
 # Merge multiple source files using a common header into one output file.
 #
-
 import tkinter as tk
 import openpyxl as xl
 from tkinter import ttk
@@ -22,12 +21,13 @@ import pathlib
 import shutil
 from tkhtmlview import HTMLScrolledText, RenderHTML, HTMLLabel
 import argparse
+# import inspect
 
-version = "v1.4.2"
-# Changes in v1.4.2:
-#       1. Handle multiple input files with the same filename.
-#       2. Add the ability to save the output file as .csv.
-#       3. Add CLI args -x and -c to control output format.
+version = "v24.12.1"
+
+# Changes in v24.12.1:
+#       1. Added tab-delimited .txt output option.
+#           That then required a slew of UI edits to cover a bunch of 
 #
 # NOTES: XMerge.py uses (2) .ini files via the configparser module.
 #
@@ -48,26 +48,37 @@ xmargparse = argparse.ArgumentParser()
 xmargparse.add_argument(
     "-u",
     "--unattended",
-    help="Run XMerge without interaction. Provide full path (including backslash) to LastXMerge.ini file in quotes.",
-    action="store",
+    help="Run XMerge without interaction. Provide full path in quotes to output folder.",
+    action="store"
 )
 xmargparse.add_argument(
     "-c",
     "--csv",
     help="Create a .csv export in addition to the .xlsx export.",
-    action="store_true",
+    action="store_true"
+)
+xmargparse.add_argument(
+    "-t",
+    "--txt",
+    help="Create a tab-delimited .txt export in addition to the .xlsx export.",
+    action="store_true"
 )
 xmargparse.add_argument(
     "-x",
     "--xlsx",
-    help="DO NOT create a .xlsx export.",
-    action="store_true",
+    help="DO NOT create a .xlsx export. .xlsx is the default output format.",
+    action="store_true"
 )
 clarg = xmargparse.parse_args()
+
 if clarg.unattended:
-    if clarg.unattended[:-1] != "\\":
-        clarg.unattended = clarg.unattended + "\\"
-    u_outfolder = os.path.dirname(clarg.unattended)
+    if clarg.unattended[-1:] != "\\":
+        messagebox.showinfo("Bad -u Path","Provide full path ONLY,\nno filename,"
+            "\nand end with backslash.")
+        sys.exit()
+    else:
+        u_outfolder = clarg.unattended
+
 
 
 confparse = ConfigParser()
@@ -97,6 +108,10 @@ def setup():
     ofExist = os.path.isdir(outFolderChk)
     didEdit = 0
     if ofExist == False:            # Configured output folder isn't there.
+        if clarg.unattended:
+            messagebox.showinfo("LastXMerge.ini Missing","The -u option can only\n"
+                "be used on folders containing\na LastXMerge.ini file.")
+            sys.exit()
         outFilesChkBox.select()     # Check the 'Change Output Folder' checkbox.
         outxm = 1
         sysconfparse.set('folders', 'output_folder', "")
@@ -130,21 +145,26 @@ def setup():
     if clarg.unattended:
         LastMergeIni = clarg.unattended + "\\LastXMerge.ini"
         outFolderChk = u_outfolder
+        chkINI = os.path.isfile(LastMergeIni)           # Look for the .ini file.
     else:
         outFolderChk = sysconfparse.get('folders', 'output_folder') # may have changed.
         LastMergeIni = outFolderChk + "\\LastXMerge.ini"
+        chkINI = os.path.isfile(LastMergeIni)           # Look for the .ini file.
     iniFilesList = []                               # Empty list for filenames.
-    chkINI = os.path.isfile(LastMergeIni)           # Look for the .ini file.
     if chkINI == True:
         confparse.read(LastMergeIni)
-         ## Update the LastXMerge.ini file if it has archaic options.
+        ## Update the LastXMerge.ini file if it has archaic options.
         if confparse.has_option('userselections','columnselection') == False:
             confparse.set('userselections','columnselection','')
+        if confparse.has_option('userselections','csvoutfile') == False:
+            confparse.set('userselections','csvoutfile','')
+        if confparse.has_option('userselections','txtoutfile') == False:
+            confparse.set('userselections','txtoutfile','')
+        if confparse.has_option('userselections','xlsxoutfile') == False:
+            confparse.set('userselections','xlsxoutfile','')
         if confparse.has_option('userselections','status') == True:
             confparse.remove_option('userselections','status')
         confxportFn = confparse.get('export','exportfilename')   # get LastXMerge.ini value
-        if confxportFn[-4:] != "xlsx":                           # normalize the filename with .xlsx.
-            confxportFn = confxportFn + ".xlsx"
         xportFn.set(confxportFn)
         # upgrade .ini file to support multiple source folders
         if confparse.has_option('folders','data_folder'):
@@ -154,11 +174,19 @@ def setup():
         datapath = confparse.get('folders', 'data_folder1')
         colNameChoice = confparse.get("userselections","columnselection")
         hdrRowChoice = confparse.get("userselections","headerrow")
-        hdrrwFn.set(hdrRowChoice)
+        outputcsvChoice = confparse.get("userselections","csvoutfile")
+        outputtxtChoice = confparse.get('userselections','txtoutfile')
+        outputxlsxChoice = confparse.get("userselections","xlsxoutfile")
         appendfilename = confparse.get("userselections","appendfilename")
         aFnVar.set(int(appendfilename))
         if colNameChoice != "":
             colNameVar.set(colNameChoice)
+        if outputcsvChoice != "":
+            csvVar.set(int(outputcsvChoice))
+        if outputtxtChoice != "":
+            txtVar.set(int(outputtxtChoice))
+        if outputxlsxChoice != "":
+            xlsxVar.set(int(outputxlsxChoice))
         if confxportFn != xportFn:
             xportFn.set(confxportFn)
             with open(LastMergeIni, 'w') as LMIni:
@@ -170,9 +198,9 @@ def setup():
     else:
         lastIniFound = " was NOT "
         newLastXMerge()
-    text3.delete("1.0", tk.END)
-    text3.insert(tk.INSERT, "Initialization complete. LastXMerge.ini" + lastIniFound + "found in Output Folder.")
-    updateWinText()
+        text3.delete("1.0", tk.END)
+        text3.insert(tk.INSERT, "Initialization complete. LastXMerge.ini" + lastIniFound + "found in Output Folder.")
+        updateWinText()
     if clarg.unattended:
         main()
     #
@@ -190,6 +218,8 @@ def updateWinText():
         outFolderChk = sysconfparse.get('folders', 'output_folder')
     if clarg.csv:
         csvVar.set(1)
+    if clarg.txt:
+        txtVar.set(1)
     if clarg.xlsx:
         xlsxVar.set(0)
     datapath = confparse.get('folders', 'data_folder1')
@@ -214,6 +244,7 @@ def main():
     outxm = getCtrlVals()[1]        # Look for 'Change Output Folder' selection.
     if outxm == 1:
         outFolderChk = newOutFolder()
+        LastMergeIni = outFolderChk + "\\LastXMerge.ini"
     else:
         if clarg.unattended:
             LastMergeIni = clarg.unattended + "\\LastXMerge.ini"
@@ -222,15 +253,41 @@ def main():
             outFolderChk = sysconfparse.get('folders', 'output_folder') # may have changed.
             LastMergeIni = outFolderChk + "\\LastXMerge.ini"
     confparse.read(LastMergeIni)
+    #
+    ## Update LastXMerge.ini with current displayed selections
+    #
+    cnval = getCtrlVals()[0]
+    csvval = getCtrlVals()[6]
+    txtval = getCtrlVals()[7]
+    xlsxval = getCtrlVals()[8]
+    if csvval == 0 and txtval == 0 and xlsxval == 0:
+        fixit = messagebox.askyesno("No Output File Format Specified","No output format is checked.\nCheck Default?\nY checks .xlsx File (default).\nN lets you pick.")
+        if fixit == True:
+            xlsxVar.set(1)
+            xlsxval = 1
+        else:
+            window.mainloop()
+    confparse.set("userselections","columnselection",str(cnval))
+    if not clarg.unattended:
+        confparse.set("userselections","csvoutfile",str(csvval))
+        confparse.set('userselections','txtoutfile',str(txtval))
+        confparse.set("userselections","xlsxoutfile",str(xlsxval))
     confxportFn = confparse.get('export','exportfilename')   # get LastXMerge.ini value
+    if confxportFn[-4:] == "xlsx":                           # strip old .xlsx extensions
+        confxportFn = confxportFn.replace('.xlsx','')
+        confparse.set('export','exportfilename',confxportFn)
     CurrXportFilename = getCtrlVals()[3]
-    if CurrXportFilename[-4:] != "xlsx":
-        CurrXportFilename = CurrXportFilename + ".xlsx"
+    if CurrXportFilename[-4:] == 'xlsx':
+        CurrXportFilename = CurrXportFilename.replace('.xlsx','')
+        confparse.set('export','exportfilename',CurrXportFilename)
+
     # If the export filename is a new one, save it to the .ini file.
     if CurrXportFilename != confxportFn:
         confparse.set('export','exportfilename',CurrXportFilename)
-        with open(LastMergeIni, 'w') as LMIni:
-            confparse.write(LMIni)
+        xportFn.set(CurrXportFilename)
+
+    with open(LastMergeIni, 'w') as LMIni:
+        confparse.write(LMIni)
         
     # Go get the source files now.
     firstFile,exportFolder,datchkFiles = browseFiles()  # Calls browseFiles(), then if Continue is Yes, txtFileCnvrt().
@@ -274,7 +331,7 @@ def main():
     # itemList contains the column names (defines the final output).
     # exportFolder is where we're putting all this output, and is where our source file copies live right now.
     # DESTfilename is the path/filename of our final output .xlsx file.
-    copyAll(convertedList,itemList,exportFolder,DESTfilename)
+    copyAll(convertedList,itemList,exportFolder,DESTfilename,LastMergeIni)
     if clarg.unattended:
         sys.exit()
 
@@ -286,8 +343,8 @@ def main():
 def makeOutput(itemList,exportFolder):
     try:
         currentxportFn = getCtrlVals()[3]
-        if currentxportFn[-4:] != "xlsx":
-            currentxportFn = currentxportFn + ".xlsx"
+        # if currentxportFn[-4:] != "xlsx":
+        #     currentxportFn = currentxportFn + ".xlsx"
         if clarg.unattended:
             outFolderChk = u_outfolder
         else:
@@ -300,7 +357,7 @@ def makeOutput(itemList,exportFolder):
             confxportFn = currentxportFn
             with open(LastMergeIni, 'w') as nnIni:
                 confparse.write(nnIni)
-        DESTfilename = exportFolder + "/" + confxportFn
+        DESTfilename = exportFolder + "/" + confxportFn + ".xlsx"
         wb3 = xl.Workbook()
         wb3Sheet = wb3['Sheet']
         wb3Sheet.title = 'XMerge'
@@ -345,7 +402,7 @@ def newOutFolder():
             text3.insert("1.0", "Verify this folder is where you want to put your merged data file.")
             window.update()
             exportFolder = filedialog.askdirectory(
-                initialdir=(outFolderChk), title="This is the previous OUTPUT folder. Use it again, or navigate to another one.")
+                initialdir=(outFolderChk), title="This is the PREVIOUS output folder. Use it again, or navigate to another one.")
         else:
             text3.delete("1.0", tk.END)
             text3.insert("1.0", "Select or Create a folder for your output files.")
@@ -369,7 +426,7 @@ def newOutFolder():
             thisMerge = os.path.normpath(exportFolder + "\\LastXMerge.ini")
             runThis = messagebox.askyesno("LastXMerge.ini found.", "Use it as it is?")
             if runThis == False:
-                newone = messagebox.askyesno("Please Choose","Y creates new .ini. N exits.")
+                newone = messagebox.askyesno("Please Choose","Y creates brand new .ini.\n N returns you to the main screen.")
                 if newone == False:
                     setup()
                 else:
@@ -381,10 +438,26 @@ def newOutFolder():
             else:
                 confparse.read(thisMerge)     # Read from LastXMerge.ini in the new folder.
                 confxportFn = confparse.get('export', 'exportfilename')
-                if confxportFn[-4:] != "xlsx":
-                    confxportFn = confxportFn + ".xlsx"
+                colNameChoice = confparse.get("userselections","columnselection")
+                hdrRowChoice = confparse.get("userselections","headerrow")
+                outputcsvChoice = confparse.get("userselections","csvoutfile")
+                outputtxtChoice = confparse.get('userselections','txtoutfile')
+                outputxlsxChoice = confparse.get("userselections","xlsxoutfile")
+                if colNameChoice != "":
+                    colNameVar.set(colNameChoice)
+                if outputcsvChoice != "":
+                    csvVar.set(int(outputcsvChoice))
+                if outputtxtChoice != "":
+                    txtVar.set(int(outputtxtChoice))
+                if outputxlsxChoice != "":
+                    xlsxVar.set(int(outputxlsxChoice))
+                if confxportFn[-4:] == "xlsx":
+                    confxportFn = confxportFn.replace('.xlsx','')
+                    with open(thisMerge, 'w') as csvIni:
+                        confparse.write(csvIni)
                 colNameVar.set(confparse.get("userselections","columnselection"))
                 xportFn.set(confxportFn)     # puts updated Export Filename in textbox.
+                window.update()
     return outFolderChk
     
     #
@@ -398,7 +471,7 @@ def newLastXMerge():
     if outFolderChk != "":
         LastMergeIni = outFolderChk + "\\LastXMerge.ini"
         confparse["files"]={}
-        confparse["userselections"]={"columnselection":"all","headerrow":"auto","appendfilename":"0"}
+        confparse["userselections"]={"columnselection":"all","headerrow":"auto","appendfilename":"0","csvoutfile":"0","txtoutfile":"0","xlsxoutfile":"1"}
         confparse["folders"]={"data_folder1":""}
         xpfn = getCtrlVals()[3]
         confparse["export"]={"exportfilename":xpfn}
@@ -513,13 +586,13 @@ def exCOPYcontinue(exportFolder,datchkFiles):
                 shutil.copyfile(f,fdest)     # Copy the file to the temp folder inside the Output folder.
                 sx = sx + 1                     # Increment the counter.
     except FileNotFoundError:
-        keepGoing = messagebox.askyesno("File Not Found",os.path.basename(f) + " was not found. Exit?")
+        keepGoing = messagebox.askyesno("File Not Found",f + "\n was not found.\n\n Exit XMerge?")
         if keepGoing == False:
             text4.delete('1.0',tk.END)
             text4.insert(tk.INSERT, "You need to check the contents of LastXMerge.ini"
-            " in your Output Folder.  One or more of your source files' name has changed, or it is gone."
-            "\n\nYou will need to exit XMerge. Then open LastXMerge.ini with Notepad and edit it."
-            "\n\nOR you can use the 'Get New Data' button to reselect sources.")
+            " in your Output Folder. A file's name has changed or it is gone. The file in question is:\n\n" + f + "\n"
+            "\nYou will need to exit XMerge. Then open LastXMerge.ini with your text editor and edit it."
+            "\n\nOR you can use the 'Get New Data' button to reselect sources from scratch.")
             window.update()
             window.mainloop()
         else:
@@ -730,7 +803,7 @@ def colConfig():                                        # open the Configuration
 # COPY DATA FROM SOURCE FILES TO DESTINATION FILE
 #       convertedList brings in the filenames for source files.
 #
-def copyAll(convertedList,itemList,exportFolder,DESTfilename):
+def copyAll(convertedList,itemList,exportFolder,DESTfilename,LastMergeIni):
     tempFolder = os.path.join(exportFolder, "temp")
     ColNames = itemList                                         # Rename itemList to colNames for clarity.
     sumRow = 0
@@ -808,31 +881,54 @@ def copyAll(convertedList,itemList,exportFolder,DESTfilename):
         except Exception as e:
             endWithError(str(e) + "\nCheck your Header Row number.")
         out1.save(DESTfilename)
-    ##
+    #
+    ## CREATE .CSV OUTPUT FILE IF CALLED FOR
+    #
     do_csv = getCtrlVals()[6]
+    if not clarg.unattended:
+        confparse.set("userselections","csvoutfile",str(do_csv))
     if do_csv == 1:
         ixf = DESTfilename
         ocf = DESTfilename.replace('xlsx','csv')
         xlsx_to_csv(ixf,ocf)
-        csvVar.set(0)
+        # csvVar.set(0)
+    #
+    ## CREATE .TXT OUTPUT FILE IF CALLED FOR
+    #
+    do_txt = getCtrlVals()[7]
+    if not clarg.unattended:
+        confparse.set("userselections","txtoutfile",str(do_txt))
+    if do_txt == 1:
+        ixf = DESTfilename
+        ocf = DESTfilename.replace('xlsx','txt')
+        xlsx_to_txt(ixf,ocf)
     ## The simplest way to deal with NOT producing an .xlsx is to just delete it afterwards.
     ## Everything happens in the .xlsx format, so we will build it, then if we don't want it, delete.
-    do_xlsx = getCtrlVals()[7]
+    do_xlsx = getCtrlVals()[8]
+    if not clarg.unattended:
+        confparse.set("userselections","xlsxoutfile",str(do_xlsx))
     if do_xlsx == 0:
         os.remove(DESTfilename)
-        if do_csv == 1:
+        if do_csv == 1 or do_txt == 1:
             DESTfilename = ocf
-        xlsxVar.set(1) # We reset this to ON because .xlsx is the default output format.
-    if do_csv == 0 and do_xlsx == 0:
+        # xlsxVar.set(1) # We reset this to ON because .xlsx is the default output format.
+        # v24.09.1 update: Leave it set as the LastXMerge.ini file says.
+    if do_csv == 0 and do_txt == 0 and do_xlsx == 0:
         DESTfilename = "No Output File"
+    with open(LastMergeIni, 'w') as LMIni:
+        confparse.write(LMIni)
     sumRow = sumRow + outRow
     tempFolder = os.path.join(exportFolder, "temp")
     shutil.rmtree(tempFolder)
     text4.delete('1.0',tk.END)
-    text4.insert(tk.INSERT, os.path.basename(DESTfilename) + " was created in \n" + exportFolder + ".\nThere are " + str(sumRow-2) + " records in the new spreadsheet."
+    text4.insert(tk.INSERT, os.path.basename(DESTfilename) + " was created in \n" + exportFolder + ".\n\nThe output file or files contain " + str(sumRow-2) + " records."
     "\n\nThe temp folder was deleted.")
     if do_csv == 1:
         text4.insert(tk.INSERT, "\n\nThe .csv file was created.")
+    if do_txt == 1:
+        text4.insert(tk.INSERT, "\n\nThe .txt file was created.")
+    if do_xlsx == 0:
+        text4.insert(tk.INSERT, "\n\nThe .xlsx file was removed as requested.")
     if SrcMissCol == "y":
         text4.insert(tk.INSERT, "\n\nAt least one Source file had a missing column.\n"
         "For that source, cells in that column were filled with empty strings.")
@@ -888,7 +984,7 @@ def endWithError(msg):
 def newData():  # Resets everything as if there is no data file, then calls main()
     sysconfparse.read(XMergeIni)            # Use the system-wide ini file.
     outFolderChk = sysconfparse.get('folders', 'output_folder')    # from XMerge.ini
-    LastMergeIni = outFolderChk + "\\LastXMerge.ini"
+    LastMergeIni = outFolderChk + "\\LastXMerge.ini" ## sets us up to use the last defined merge folder.
     # If Change Output Folder is checked, leave this LastXMerge.ini file alone.
     # If it's not checked, we want new data in the same Output Folder.
     # So, then, we need to clear the filenames from LastXMerge.ini in this 
@@ -913,23 +1009,24 @@ def newData():  # Resets everything as if there is no data file, then calls main
         chkIniexist = os.path.isfile(LastMergeIni)      #  look for LastXMerge.ini.
         if chkIniexist == False:                        # There wasn't one.
             confparse["files"]={}                       # Set up the basic settings.
-            confparse["userselections"]={"columnselection":""}   #
+            confparse["userselections"]={"columnselection":"","headerrow":"auto","appendfilename":"0","csvoutfile":"0","txtoutfile":"0","xlsxoutfile":"1"}   #
             confparse["folders"]={"data_folder1":""}     #
             xpfn = getCtrlVals()[3]
-            confparse["export"]={"exportfilename":xpfn} # Use whatever filename is on the screen.
+            confparse["export"]={"exportfilename":xpfn} # Use whatever export filename is on the screen.
             with open(LastMergeIni, 'w') as LMIni:      #  Create a new LastXMerge.ini file.
                 confparse.write(LMIni)                  #
         # Now there is a LastXMerge.ini, either old or new.
         confparse.read(LastMergeIni)            # Read it.
         expFileName = getCtrlVals()[3]
-        if expFileName[-4:] != "xlsx":          # if not an .xlsx extension, supply it.
-            expFileName = expFileName + ".xlsx"
         xportFn.set(expFileName)
         confparse.set("export","exportfilename",expFileName)
         datchk = {k:v for k,v in confparse['files'].items()}
         for k in datchk:
             confparse.remove_option('files',k)      # Purge any and all filename entries.
-        confparse.set('folders','data_folder1',"")   # Reset the Output Folder to blank.
+        datfldrchk = {k:v for k,v in confparse['folders'].items()}
+        for k in datfldrchk:
+            confparse.remove_option('folders',k)
+            confparse.set('folders','data_folder1',"")   # Reset the first data Folder to 1.
         with open(LastMergeIni, 'w') as csvIni: # Save the edits.
             confparse.write(csvIni)
     main()      # Re-run the main() function, which sends us back to gathering sources.
@@ -942,7 +1039,14 @@ def xlsx_to_csv(ixf,ocf):
         csv_writer = csv.writer(thecsv)
         for r in ixsheet.iter_rows():
             csv_writer.writerow([cell.value for cell in r])
-
+#
+def xlsx_to_txt(ixf,ocf):
+    inputxlsx = xl.load_workbook(ixf)
+    ixsheet = inputxlsx.active
+    with open(ocf, 'w', newline="") as thetxt:
+        txt_writer = csv.writer(thetxt, delimiter='\t')
+        for r in ixsheet.iter_rows():
+            txt_writer.writerow([cell.value for cell in r])
 #
 #  EVERYTHING SOUTH OF HERE defines the tKinter windows stuff  #
 #
@@ -1003,7 +1107,7 @@ def aboutWindow():
     aw.rowconfigure(0, weight=1)
     aboutText = tk.Text(aw, height=20, width=170, bd=3, padx=10, pady=10, wrap=tk.WORD, font=nnFont)
     aboutText.grid(column=0, row=1)
-    aboutText.insert(tk.INSERT, "This tool converts and merges multiple flat source files (.csv, .txt, .xls, .xlsx) into one .xlsx file." 
+    aboutText.insert(tk.INSERT, "This tool merges multiple flat source files (.csv, .txt, .xls, .xlsx) into a single file. You can specify one or more output formats." 
 "\n\nCheck out Help for more details.\n\nYour XMerge installation and supporting files are located at:\n\n" + path_to_dat + "\n"
 "\nStart with the 'Get New Data' button to the left.\n\n- Greg Sanders, aka Dr.Gerg\n"
 "\nXMerge is written in Python and compiled using PyInstaller.\nInno Setup Compiler builds the Windows installer.\n\n"
@@ -1024,7 +1128,7 @@ def helpWindow():
     hw.iconbitmap(path_to_dat + './ico/XMergeicon.ico')
     hwlabel = HTMLLabel(hw, height=3, html='<h2 style="text-align: center">XMerge Help</h2>')
     hw.columnconfigure(0, weight=1)
-    helpText = HTMLScrolledText(hw, height=44, padx=10, pady=10, html=RenderHTML(path_to_dat + "\XMerge_Help.html"))
+    helpText = HTMLScrolledText(hw, height=44, padx=10, pady=10, html=RenderHTML(path_to_dat + "\\XMerge_Help.html"))
     hwlabel.grid(column=0, row=0, sticky="NSEW")  # Place label in grid
     helpText.grid(column=0, row=1, ipadx=10, ipady=10, sticky="NSEW")
 #
@@ -1034,7 +1138,7 @@ def manageColNames():
     coln = pathlib.PurePath(colPath)
     fileChk = os.path.isfile(coln)  # Look for the file.
     if fileChk == False:            # copy it if absent.
-        shutil.copy(path_to_dat + '\ColumnNames.xlsx',outFolderChk)
+        shutil.copy(path_to_dat + '\\ColumnNames.xlsx',outFolderChk)
         text4.insert(tk.INSERT, "\nColumnNames.xlsx was missing. Added it to Output Folder.")
         # Ask if we need to edit the freshly copied file. Almost certainly yes.
         doEdit = messagebox.askyesno("ColumnNames.xlsx was just copied over.","Do you probably need to edit it.")
@@ -1091,8 +1195,9 @@ def getCtrlVals():
     hdrrwFnVar = hdrrwFn.get() # 4 - Header Row Number 
     appendfilename = aFnVar.get() # 5 - Append Src Filenames
     csvCopyvar = csvVar.get() # 6 - Create a .csv output file
-    xlsxCopyvar = xlsxVar.get() # 7 - Create a .xlsx output file
-    return colName,outxm,ofcchk,xportFnVar,hdrrwFnVar,appendfilename,csvCopyvar,xlsxCopyvar
+    txtCopyvar = txtVar.get() # 7 - Create a .txt (tab-delimited) output file
+    xlsxCopyvar = xlsxVar.get() # 8 - Create a .xlsx output file
+    return colName,outxm,ofcchk,xportFnVar,hdrrwFnVar,appendfilename,csvCopyvar,txtCopyvar,xlsxCopyvar
 
 controlsFrame = tk.LabelFrame(window, text="Controls")             # larger frame to hold Radio Button frame
 controlsFrame.grid(column=0, row=2, padx=10, sticky='nw')
@@ -1108,11 +1213,11 @@ cs2.grid(column=0, row=2, sticky='nw')
 # Set up push-buttons
 #
 button_go = ttk.Button(controlsFrame, text="Get New Data", command=newData)         # "Get New Data" button
-button_go.grid(column=0, row=8, padx=10, pady=10, sticky='n')                       # Place New Data button in grid
+button_go.grid(column=0, row=9, padx=10, pady=10, sticky='n')                       # Place New Data button in grid
 button_go = ttk.Button(controlsFrame, text="Go", command=main)                      # "Go" button
-button_go.grid(column=0, row=13, padx=10, pady=10, sticky='n')                      # Place Go button in grid
+button_go.grid(column=0, row=14, padx=10, pady=10, sticky='n')                      # Place Go button in grid
 button_exit = ttk.Button(controlsFrame, text="Exit", command=exit)                  # "Exit" button
-button_exit.grid(column=0, row=14, padx=10, pady=10, sticky='n')                    # Place Exit button in grid
+button_exit.grid(column=0, row=15, padx=10, pady=10, sticky='n')                    # Place Exit button in grid
 #
 # Set up check boxes
 #
@@ -1127,27 +1232,30 @@ aFnChkBox = tk.Checkbutton(controlsFrame,text='Append Src Filenames', variable=a
 aFnChkBox.grid(column=0, row=5, sticky='nw')                                                   # place it
 csvVar = tk.IntVar(value=0)
 csvChkBox = tk.Checkbutton(controlsFrame,text='Export to .csv File', variable=csvVar, onvalue=1, offvalue=0, command=getCtrlVals)      # define it
-csvChkBox.grid(column=0, row=6, sticky='nw')                                                   # place it
+csvChkBox.grid(column=0, row=6, sticky='nw')  
+txtVar = tk.IntVar(value=0)
+txtChkBox = tk.Checkbutton(controlsFrame,text='Export to .txt (tab) File', variable=txtVar, onvalue=1, offvalue=0, command=getCtrlVals)      # define it
+txtChkBox.grid(column=0, row=7, sticky='nw')                                                   # place it
 xlsxVar = tk.IntVar(value=0)
 xlsxChkBox = tk.Checkbutton(controlsFrame,text='Export to .xlsx File', variable=xlsxVar, onvalue=1, offvalue=0, command=getCtrlVals)      # define it
-xlsxChkBox.grid(column=0, row=7, sticky='nw')                                                   # place it
+xlsxChkBox.grid(column=0, row=8, sticky='nw')                                                   # place it
 xlsxChkBox.select()
 #
 # Set up confxportFn text entry box
 #
-xportFn = tk.StringVar(value = "XMerge_Export.xlsx")
+xportFn = tk.StringVar(value = "XMerge_Export")
 xportFnLabel = tk.Label(controlsFrame, text="Export Filename:")
 xportFnEntry = tk.Entry(controlsFrame, justify='center', textvariable = xportFn, width=20)
-xportFnLabel.grid(column=0, row=9)
-xportFnEntry.grid(column=0, row=10)
+xportFnLabel.grid(column=0, row=10)
+xportFnEntry.grid(column=0, row=11)
 #
 # Set up HeaderRowVar text entry box
 #
 hdrrwFn = tk.StringVar(value = "auto")
 hdrrwFnLabel = tk.Label(controlsFrame, text="Header Row Number:")
 hdrrwFnEntry = tk.Entry(controlsFrame, justify='center', textvariable = hdrrwFn, width=6)
-hdrrwFnLabel.grid(column=0, row=11, pady=(10,0), sticky='s')
-hdrrwFnEntry.grid(column=0, row=12, sticky='n')
+hdrrwFnLabel.grid(column=0, row=12, pady=(10,0), sticky='s')
+hdrrwFnEntry.grid(column=0, row=13, sticky='n')
 # Set up text windows
 #
 text1 = tk.Text(window, height=6, width=150, wrap=tk.WORD, font=nnFont)

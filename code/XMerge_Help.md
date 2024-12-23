@@ -1,12 +1,26 @@
-## XMerge: the Source File Merger
+## XMerge: The Source File Merger
 
-XMerge helps you merge the contents of multiple .txt, .csv, .xls, or .xlsx files into one .xlsx spreadsheet.
+**XMerge** helps you merge the contents of multiple .txt, .csv, .xls, or .xlsx files into one .xlsx spreadsheet.
 
 You specify or create the Output folder.  This is where your output file will be when XMerge finishes.  All of XMerge's activities happen in this folder.
 
 XMerge makes copies of source files and creates your output.xlsx file.  Because it works from copies, any mistakes you make in selecting options will do no permanent damage.  When things don't go like you wanted, change settings and try again.
 
 **XMerge does not manipulate the original source files in any way.**
+
+#### UNATTENDED MODE
+
+There are five command-line arguments (switches, options) you can use:  
+`xmerge -h` or `xmerge --help` displays command-line help.  
+`xmerge -u "c:\path\to\LastXMerge.ini\file\"` runs XMerge in unattended mode. This is useful in batch files.  
+`xmerge -c` creates a .csv output file in addition to the normal .xlsx file.  
+`xmerge -t` creates a .txt tab-delimited file in addition to the normal .xlsx file.  
+`xmerge -x` does NOT create the normal .xlsx file.  
+
+For example: If you want to run unattended, and end up with only a .csv file, you would run:  
+`xmerge -u "c:\path\to\LastXMerge.ini\file\" -c -x`
+
+Unattended mode does not modify the LastXMerge.ini file. It references it for some values, but leaves it intact.
 
 #### CHOOSE YOUR COLUMN NAMES
 
@@ -39,6 +53,7 @@ If a source file doesn't have an expected column, XMerge just fills cells for th
 #### OUTPUT FILENAME
 
 You may specify the output filename in a box on the screen, or leave the default "XMerge_Export" there.
+No file extension is expected or needed.
 
 You can specify new output folders anytime you wish, and you can change the output filename anytime you wish.
 
@@ -65,17 +80,23 @@ The original source files are never touched.
 
 **EXPORT TO .CSV FILE** Create a comma-delimited output file.
 
+**EXPORT TO .TXT FILE** Create a tab-delimited output file.
+
 **EXPORT TO .XLSX fILE** Create an .xlsx output file. This is the default, so it's checked.
 
-**'GET NEW DATA' BUTTON**:  Use this when you are first starting XMerge, or anytime you want to change data sets.  You will be prompted to clear the outputs folder if there are files in it.  If you opt to NOT clear the outputs folder, the end result will not be what you want.
+**'GET NEW DATA' BUTTON**:  Use this when you are first starting XMerge, or anytime you want to change data sets.
 
 **'GO' BUTTON**: Use this to copy, convert, and compile the same files you worked with last time.  This is helpful when you have made edits and re-generated the source data files.
 
 ### COMMAND-LINE OPTIONS
 
+Typing: xmerge -h  OR  xmerge --help shows you the normal *nix-style command line help text.
+
 Typing: xmerge -u "C:\Users\me\Desktop\myspecialfolder\" runs XMerge in unattended mode.  This can only be used to repeat previously run merges.
 
 Typing: xmerge -c results in the creation of a comma-delimited version of your output (Export) file.
+
+Typing: xmerge -t results in the creation of a tab-delimited version of your output (Export) file.
 
 Typing: xmerge -x prevents the creation of an .xlsx output (Export) file.
 

@@ -1,8 +1,18 @@
-<h2>XMerge: the Source File Merger</h2>
-<p>XMerge helps you merge the contents of multiple .txt, .csv, .xls, or .xlsx files into one .xlsx spreadsheet.</p>
+<h2>XMerge: The Source File Merger</h2>
+<p><strong>XMerge</strong> helps you merge the contents of multiple .txt, .csv, .xls, or .xlsx files into one .xlsx spreadsheet.</p>
 <p>You specify or create the Output folder.  This is where your output file will be when XMerge finishes.  All of XMerge's activities happen in this folder.</p>
 <p>XMerge makes copies of source files and creates your output.xlsx file.  Because it works from copies, any mistakes you make in selecting options will do no permanent damage.  When things don't go like you wanted, change settings and try again.</p>
 <p><strong>XMerge does not manipulate the original source files in any way.</strong></p>
+<h4>UNATTENDED MODE</h4>
+<p>There are five command-line arguments (switches, options) you can use:<br />
+<code>xmerge -h</code> or <code>xmerge --help</code> displays command-line help.<br />
+<code>xmerge -u "c:\path\to\LastXMerge.ini\file\"</code> runs XMerge in unattended mode. This is useful in batch files.<br />
+<code>xmerge -c</code> creates a .csv output file in addition to the normal .xlsx file.<br />
+<code>xmerge -t</code> creates a .txt tab-delimited file in addition to the normal .xlsx file.<br />
+<code>xmerge -x</code> does NOT create the normal .xlsx file.  </p>
+<p>For example: If you want to run unattended, and end up with only a .csv file, you would run:<br />
+<code>xmerge -u "c:\path\to\LastXMerge.ini\file\" -c -x</code></p>
+<p>Unattended mode does not modify the LastXMerge.ini file. It references it for some values, but leaves it intact.</p>
 <h4>CHOOSE YOUR COLUMN NAMES</h4>
 <p><img alt="The controls section." src=".\img\controls.png" /></p>
 <p>There is a radio button section in the Controls block that allows you to select between "All Columns" or "Configured Cols".  If you want to specify the columns XMerge will pull into the new output .xlsx file, you do that by listing the column names in a spreadsheet called 'ColumnNames.xlsx'.</p>
@@ -18,7 +28,8 @@
 <h4>SOURCE FILES MISSING A COLUMN</h4>
 <p>If a source file doesn't have an expected column, XMerge just fills cells for that column with empty strings.  No fuss, no muss.</p>
 <h4>OUTPUT FILENAME</h4>
-<p>You may specify the output filename in a box on the screen, or leave the default "XMerge_Export" there.</p>
+<p>You may specify the output filename in a box on the screen, or leave the default "XMerge_Export" there.
+No file extension is expected or needed.</p>
 <p>You can specify new output folders anytime you wish, and you can change the output filename anytime you wish.</p>
 <h4>DUAL CONFIGURATION FILES (xmerge.ini and LastXMerge.ini)</h4>
 <p><strong>XMerge stores your current configuration in two .ini files.</strong></p>
@@ -34,12 +45,15 @@
 <p><strong>CLEAR OUTPUT FOLDER</strong>:  Select this checkbox if you want to delete the contents of the current outputs folder before continuing.  Be aware: all files will be deleted from the current output folder (the one listed on line 3 "Currently selected Output folder:".)</p>
 <p><strong>APPEND SRC FILENAMES</strong>: If you check this box, the source file filename (minus the extension) will be added to the last column in your spreadsheet.  This tells you where that row of data came from.</p>
 <p><strong>EXPORT TO .CSV FILE</strong> Create a comma-delimited output file.</p>
+<p><strong>EXPORT TO .TXT FILE</strong> Create a tab-delimited output file.</p>
 <p><strong>EXPORT TO .XLSX fILE</strong> Create an .xlsx output file. This is the default, so it's checked.</p>
-<p><strong>'GET NEW DATA' BUTTON</strong>:  Use this when you are first starting XMerge, or anytime you want to change data sets.  You will be prompted to clear the outputs folder if there are files in it.  If you opt to NOT clear the outputs folder, the end result will not be what you want.</p>
+<p><strong>'GET NEW DATA' BUTTON</strong>:  Use this when you are first starting XMerge, or anytime you want to change data sets.</p>
 <p><strong>'GO' BUTTON</strong>: Use this to copy, convert, and compile the same files you worked with last time.  This is helpful when you have made edits and re-generated the source data files.</p>
 <h3>COMMAND-LINE OPTIONS</h3>
+<p>Typing: xmerge -h  OR  xmerge --help shows you the normal *nix-style command line help text.</p>
 <p>Typing: xmerge -u "C:\Users\me\Desktop\myspecialfolder\" runs XMerge in unattended mode.  This can only be used to repeat previously run merges.</p>
 <p>Typing: xmerge -c results in the creation of a comma-delimited version of your output (Export) file.</p>
+<p>Typing: xmerge -t results in the creation of a tab-delimited version of your output (Export) file.</p>
 <p>Typing: xmerge -x prevents the creation of an .xlsx output (Export) file.</p>
 <h4>FUZZY FONTS ON HI-DPI DISPLAYS</h4>
 <p>High-DPI displays introduce the potential for fuzzy fonts due to scaling.  This behavior is determined by your Display Settings in Windows.</p>
