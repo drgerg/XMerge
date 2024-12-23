@@ -1,8 +1,8 @@
 # Convert and combine multiple flat data files into one without Excel
 
-If you are an Excel guru, you don't need this.  But if you aren't, and you have several flat data files that you need to quickly and simply compile into one .xlsx spreadsheet file, XMerge can help.
+If you are an Excel guru, you don't need this.  But if you aren't, and you have several flat data files that you need to quickly and simply compile into one file, XMerge can help.
 
-**Flat data files** means comma-delimited (.csv), tab-delimited (.txt), .xls files, and .xlsx files.  You can argue the last two aren't 'flat files', but XMerge works on them anyway.
+**Flat data files** means comma-delimited (.csv), tab-delimited (.txt), .xls files, and .xlsx files.  You can argue the last two aren't 'flat files', but XMerge works on them anyway.  Output files can be .csv (comma-delimited), .txt (tab-delimited) or .xlsx formats.
 
 Choose your settings, select your source files (must live in same folder), the hit the 'Go' button.
 
