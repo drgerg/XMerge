@@ -4,7 +4,7 @@ If you are an Excel guru, you don't need this.  But if you aren't, and you have 
 
 **Flat data files** means comma-delimited (.csv), tab-delimited (.txt), .xls files, and .xlsx files.  You can argue the last two aren't 'flat files', but XMerge works on them anyway.  Output files can be .csv (comma-delimited), .txt (tab-delimited) or .xlsx formats.
 
-Choose your settings, select your source files (must live in same folder), the hit the 'Go' button.
+Choose your settings, select your source files from one or many folders, then hit the 'Go' button.
 
 XMerge copies the source files to a temp directory and works on them there.  The originals are not touched.  The temp directory is deleted when XMerge finishes.
 
