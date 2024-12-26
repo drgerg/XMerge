@@ -89,8 +89,6 @@ The original source files are never touched.
 
 ### COMMAND-LINE OPTIONS
 
-Typing: xmerge -h  OR  xmerge --help shows you the normal *nix-style command line help text.
-
 Typing: xmerge -u "C:\Users\me\Desktop\myspecialfolder\" runs XMerge in unattended mode.  This can only be used to repeat previously run merges.
 
 Typing: xmerge -c results in the creation of a comma-delimited version of your output (Export) file.
