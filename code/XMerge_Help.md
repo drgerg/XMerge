@@ -10,8 +10,7 @@ XMerge makes copies of source files and creates your output.xlsx file.  Because 
 
 #### UNATTENDED MODE
 
-There are five command-line arguments (switches, options) you can use:  
-`xmerge -h` or `xmerge --help` displays command-line help.  
+There are four command-line arguments (switches, options) you can use:  
 `xmerge -u "c:\path\to\LastXMerge.ini\file\"` runs XMerge in unattended mode. This is useful in batch files.  
 `xmerge -c` creates a .csv output file in addition to the normal .xlsx file.  
 `xmerge -t` creates a .txt tab-delimited file in addition to the normal .xlsx file.  
@@ -28,9 +27,9 @@ Unattended mode does not modify the LastXMerge.ini file. It references it for so
 
 There is a radio button section in the Controls block that allows you to select between "All Columns" or "Configured Cols".  If you want to specify the columns XMerge will pull into the new output .xlsx file, you do that by listing the column names in a spreadsheet called 'ColumnNames.xlsx'.
 
-As of version 1.3.3, ColumnNames.xlsx is added to each Output Folder you work in when you check the "Configured Cols" radio button.  The file is only used if "Configured Cols" is checked.
+If you select the 'Configured Cols' option, ColumnNames.xlsx is added to this job's Output Folder.  The file is only used if "Configured Cols" is checked.
 
-To quickly and easily edit that file, use the option in the File menu: "File | Edit ColumnNames.xlsx".  The  file must have at least one tab named "MERGE" (no quotes).  There will be some explanatory text on that sheet as well.
+The  file must have at least one sheet (tab) named "MERGE" (no quotes).  There is some explanatory text on that sheet as well.
 
 Replace whatever you find there with the column names you want to be in your new merged spreadsheet.  You can backup name sets by making a new tab and saving previous column names in it.
 
