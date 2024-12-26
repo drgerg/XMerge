@@ -8,6 +8,8 @@ If you are a seasoned Excel guru, you may not need this.  Even if you are, if yo
 
 ### XMerge does not require Excel, a Microsoft login, the cloud, an Ethernet connection or any outside dependancies.
 
+### XMerge copies only values contained in cells. No formulas or macros are copied to output files.
+
 Choose your settings, select your source files from one or many folders, then hit the 'Go' button.
 
 XMerge copies the source files to a temp directory and works on them there.  The originals are not touched.  The temp directory is deleted when XMerge finishes.
