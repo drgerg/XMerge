@@ -4,8 +4,7 @@
 <p>XMerge makes copies of source files and creates your output.xlsx file.  Because it works from copies, any mistakes you make in selecting options will do no permanent damage.  When things don't go like you wanted, change settings and try again.</p>
 <p><strong>XMerge does not manipulate the original source files in any way.</strong></p>
 <h4>UNATTENDED MODE</h4>
-<p>There are five command-line arguments (switches, options) you can use:<br />
-<code>xmerge -h</code> or <code>xmerge --help</code> displays command-line help.<br />
+<p>There are four command-line arguments (switches, options) you can use:<br />
 <code>xmerge -u "c:\path\to\LastXMerge.ini\file\"</code> runs XMerge in unattended mode. This is useful in batch files.<br />
 <code>xmerge -c</code> creates a .csv output file in addition to the normal .xlsx file.<br />
 <code>xmerge -t</code> creates a .txt tab-delimited file in addition to the normal .xlsx file.<br />
@@ -16,8 +15,8 @@
 <h4>CHOOSE YOUR COLUMN NAMES</h4>
 <p><img alt="The controls section." src=".\img\controls.png" /></p>
 <p>There is a radio button section in the Controls block that allows you to select between "All Columns" or "Configured Cols".  If you want to specify the columns XMerge will pull into the new output .xlsx file, you do that by listing the column names in a spreadsheet called 'ColumnNames.xlsx'.</p>
-<p>As of version 1.3.3, ColumnNames.xlsx is added to each Output Folder you work in when you check the "Configured Cols" radio button.  The file is only used if "Configured Cols" is checked.</p>
-<p>To quickly and easily edit that file, use the option in the File menu: "File | Edit ColumnNames.xlsx".  The  file must have at least one tab named "MERGE" (no quotes).  There will be some explanatory text on that sheet as well.</p>
+<p>If you select the 'Configured Cols' option, ColumnNames.xlsx is added to this job's Output Folder.  The file is only used if "Configured Cols" is checked.</p>
+<p>The  file must have at least one sheet (tab) named "MERGE" (no quotes).  There is some explanatory text on that sheet as well.</p>
 <p>Replace whatever you find there with the column names you want to be in your new merged spreadsheet.  You can backup name sets by making a new tab and saving previous column names in it.</p>
 <p><strong>NOTE</strong>: The column names you specify must already be in each of the source files you are merging.  If not, XMerge will create the columns in your merge file, but there will be nothing in them.</p>
 <h4>SPECIFY THE HEADER ROW</h4>
@@ -50,7 +49,6 @@ No file extension is expected or needed.</p>
 <p><strong>'GET NEW DATA' BUTTON</strong>:  Use this when you are first starting XMerge, or anytime you want to change data sets.</p>
 <p><strong>'GO' BUTTON</strong>: Use this to copy, convert, and compile the same files you worked with last time.  This is helpful when you have made edits and re-generated the source data files.</p>
 <h3>COMMAND-LINE OPTIONS</h3>
-<p>Typing: xmerge -h  OR  xmerge --help shows you the normal *nix-style command line help text.</p>
 <p>Typing: xmerge -u "C:\Users\me\Desktop\myspecialfolder\" runs XMerge in unattended mode.  This can only be used to repeat previously run merges.</p>
 <p>Typing: xmerge -c results in the creation of a comma-delimited version of your output (Export) file.</p>
 <p>Typing: xmerge -t results in the creation of a tab-delimited version of your output (Export) file.</p>
