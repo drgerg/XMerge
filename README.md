@@ -6,7 +6,7 @@ If you are a seasoned Excel guru, you may not need this.  Even if you are, if yo
 
 **Flat data files** means comma-delimited (.csv), tab-delimited (.txt), .xls files, and .xlsx files.  You can argue the last two aren't 'flat files', but XMerge works on them anyway.  Output files can be .csv (comma-delimited), .txt (tab-delimited) or .xlsx formats.
 
-### XMerge does not require Excel, a Microsoft login, the cloud, and Ethernet connection or any outside dependancies.
+### XMerge does not require Excel, a Microsoft login, the cloud, an Ethernet connection or any outside dependancies.
 
 Choose your settings, select your source files from one or many folders, then hit the 'Go' button.
 
